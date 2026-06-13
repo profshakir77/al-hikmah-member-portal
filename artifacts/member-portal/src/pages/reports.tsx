@@ -17,9 +17,10 @@ import { generateMonthlyPdf, generateYearlyPdf, printedAt } from "@/lib/pdf-repo
 
 function NowBadge() {
   return (
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-blue-50 border border-blue-100 rounded-full px-3 py-1">
+    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-blue-50 border border-blue-100 rounded-full px-3 py-1 shrink-0">
       <Clock className="w-3 h-3 text-blue-500" />
-      <span>{printedAt()}</span>
+      <span className="hidden sm:inline">{printedAt()}</span>
+      <span className="sm:hidden">{new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
     </div>
   );
 }
@@ -64,44 +65,37 @@ function MonthlyReport({ orgName }: { orgName: string }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Controls row */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-3">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex gap-2">
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-32 md:w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
               {MONTHS.map((m) => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-20 md:w-24"><SelectValue /></SelectTrigger>
             <SelectContent>
               {generateYearOptions().map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <NowBadge />
-          <Button
-            size="sm"
-            onClick={handlePdf}
-            disabled={!report || downloading}
-            className="gap-2 btn-ripple shadow-sm"
-          >
+          <Button size="sm" onClick={handlePdf} disabled={!report || downloading} className="gap-2 btn-ripple shadow-sm shrink-0">
             <Download className="w-4 h-4" />
-            {downloading ? "Generating…" : "Download PDF"}
+            <span className="hidden sm:inline">{downloading ? "Generating…" : "Download PDF"}</span>
+            <span className="sm:hidden">PDF</span>
           </Button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 rounded-xl bg-muted/50 animate-pulse" />)}
-        </div>
+        <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 rounded-xl bg-muted/50 animate-pulse" />)}</div>
       ) : report ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
             {[
               { label: "Total Members", value: report.totalMembers, className: "" },
               { label: "Paid", value: report.paid, className: "text-green-600" },
@@ -111,9 +105,9 @@ function MonthlyReport({ orgName }: { orgName: string }) {
               { label: "Net", value: formatCurrency(report.net), className: report.net >= 0 ? "text-green-600" : "text-destructive" },
             ].map((stat) => (
               <Card key={stat.label} className="stat-card hover:border-primary/20">
-                <CardContent className="pt-5 pb-4">
-                  <div className={`text-xl font-bold ${stat.className}`}>{stat.value}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                <CardContent className="pt-4 pb-3 px-3 md:px-5">
+                  <div className={`text-lg md:text-xl font-bold ${stat.className}`}>{stat.value}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
@@ -131,44 +125,42 @@ function MonthlyReport({ orgName }: { orgName: string }) {
           </Card>
 
           <Card className="hover:shadow-md transition-shadow duration-200">
-            <CardHeader>
-              <CardTitle>Member Breakdown - {monthLabel(month)} {year}</CardTitle>
+            <CardHeader className="pb-2 md:pb-4">
+              <CardTitle className="text-base md:text-lg">Member Breakdown - {monthLabel(month)} {year}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Reg No.</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {report.payments.map((p) => (
-                    <TableRow key={p.memberId} className="table-row-hover">
-                      <TableCell className="font-mono text-sm">{p.registrationNumber}</TableCell>
-                      <TableCell>{p.name}</TableCell>
-                      <TableCell>
-                        {p.paid ? (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
-                            <CheckCircle className="w-3 h-3 mr-1" /> Paid
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
-                            <XCircle className="w-3 h-3 mr-1" /> Unpaid
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{p.amount != null ? formatCurrency(p.amount) : "-"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {p.paidAt ? new Date(p.paidAt).toLocaleDateString("en-GB") : "-"}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Reg No.</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden sm:table-cell">Amount</TableHead>
+                      <TableHead className="hidden sm:table-cell">Date</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {report.payments.map((p) => (
+                      <TableRow key={p.memberId} className="table-row-hover">
+                        <TableCell className="font-mono text-xs md:text-sm">{p.registrationNumber}</TableCell>
+                        <TableCell className="text-sm">{p.name}</TableCell>
+                        <TableCell>
+                          {p.paid ? (
+                            <Badge className="bg-green-100 text-green-700 border-green-200 text-xs"><CheckCircle className="w-3 h-3 mr-1" /> Paid</Badge>
+                          ) : (
+                            <Badge className="bg-red-100 text-red-700 border-red-200 text-xs"><XCircle className="w-3 h-3 mr-1" /> Unpaid</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">{p.amount != null ? formatCurrency(p.amount) : "-"}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                          {p.paidAt ? new Date(p.paidAt).toLocaleDateString("en-GB") : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </>
@@ -215,36 +207,29 @@ function YearlyReport({ orgName }: { orgName: string }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Controls row */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-          <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-20 md:w-24"><SelectValue /></SelectTrigger>
           <SelectContent>
             {generateYearOptions().map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <NowBadge />
-          <Button
-            size="sm"
-            onClick={handlePdf}
-            disabled={!report || downloading}
-            className="gap-2 btn-ripple shadow-sm"
-          >
+          <Button size="sm" onClick={handlePdf} disabled={!report || downloading} className="gap-2 btn-ripple shadow-sm shrink-0">
             <Download className="w-4 h-4" />
-            {downloading ? "Generating…" : "Download PDF"}
+            <span className="hidden sm:inline">{downloading ? "Generating…" : "Download PDF"}</span>
+            <span className="sm:hidden">PDF</span>
           </Button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 rounded-xl bg-muted/50 animate-pulse" />)}
-        </div>
+        <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 rounded-xl bg-muted/50 animate-pulse" />)}</div>
       ) : report ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
               { label: "Total Collected", value: formatCurrency(report.totalCollected), className: "text-green-600" },
               { label: "Total Expected", value: formatCurrency(report.totalExpected), className: "" },
@@ -252,43 +237,47 @@ function YearlyReport({ orgName }: { orgName: string }) {
               { label: "Net", value: formatCurrency(report.net), className: report.net >= 0 ? "text-green-600" : "text-destructive" },
             ].map((stat) => (
               <Card key={stat.label} className="stat-card hover:border-primary/20">
-                <CardContent className="pt-5 pb-4">
-                  <div className={`text-xl font-bold ${stat.className}`}>{stat.value}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                <CardContent className="pt-4 pb-3 px-3 md:px-5">
+                  <div className={`text-base md:text-xl font-bold ${stat.className}`}>{stat.value}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
           <Card className="hover:shadow-md transition-shadow duration-200">
-            <CardHeader><CardTitle>Monthly Breakdown - {year}</CardTitle></CardHeader>
+            <CardHeader className="pb-2 md:pb-4">
+              <CardTitle className="text-base md:text-lg">Monthly Breakdown - {year}</CardTitle>
+            </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Month</TableHead>
-                    <TableHead>Paid</TableHead>
-                    <TableHead>Unpaid</TableHead>
-                    <TableHead>Collected</TableHead>
-                    <TableHead>Expenses</TableHead>
-                    <TableHead>Net</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {report.monthlyBreakdown.map((m) => (
-                    <TableRow key={m.month} className="table-row-hover">
-                      <TableCell className="font-medium">{monthLabel(m.month)}</TableCell>
-                      <TableCell className="text-green-600">{m.paid}</TableCell>
-                      <TableCell className="text-destructive">{m.unpaid}</TableCell>
-                      <TableCell>{formatCurrency(m.collected)}</TableCell>
-                      <TableCell className="text-orange-600">{formatCurrency(m.expenses)}</TableCell>
-                      <TableCell className={m.net >= 0 ? "text-green-600 font-medium" : "text-destructive font-medium"}>
-                        {formatCurrency(m.net)}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Month</TableHead>
+                      <TableHead>Paid</TableHead>
+                      <TableHead className="hidden sm:table-cell">Unpaid</TableHead>
+                      <TableHead>Collected</TableHead>
+                      <TableHead className="hidden sm:table-cell">Expenses</TableHead>
+                      <TableHead>Net</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {report.monthlyBreakdown.map((m) => (
+                      <TableRow key={m.month} className="table-row-hover">
+                        <TableCell className="font-medium text-sm">{monthLabel(m.month)}</TableCell>
+                        <TableCell className="text-green-600">{m.paid}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-destructive">{m.unpaid}</TableCell>
+                        <TableCell className="text-sm">{formatCurrency(m.collected)}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-orange-600">{formatCurrency(m.expenses)}</TableCell>
+                        <TableCell className={`font-medium text-sm ${m.net >= 0 ? "text-green-600" : "text-destructive"}`}>
+                          {formatCurrency(m.net)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </>
@@ -304,20 +293,20 @@ export default function Reports() {
   const orgName = settings?.organizationName ?? "Al-Hikmah Community Center";
 
   return (
-    <div className="p-8 space-y-6 page-enter">
+    <div className="p-4 md:p-8 space-y-5 md:space-y-6 page-enter">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-muted-foreground mt-1">Financial summaries with PDF export</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Reports</h1>
+        <p className="text-muted-foreground mt-0.5 text-sm">Financial summaries with PDF export</p>
       </div>
       <Tabs defaultValue="monthly">
         <TabsList>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
           <TabsTrigger value="yearly">Yearly</TabsTrigger>
         </TabsList>
-        <TabsContent value="monthly" className="mt-6">
+        <TabsContent value="monthly" className="mt-4 md:mt-6">
           <MonthlyReport orgName={orgName} />
         </TabsContent>
-        <TabsContent value="yearly" className="mt-6">
+        <TabsContent value="yearly" className="mt-4 md:mt-6">
           <YearlyReport orgName={orgName} />
         </TabsContent>
       </Tabs>

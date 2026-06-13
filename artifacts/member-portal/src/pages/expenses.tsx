@@ -85,30 +85,34 @@ export default function Expenses() {
   const handleSubmit = () => {
     const data = { title: form.title.trim(), amount: Number(form.amount), category: form.category, month: Number(form.month), year: Number(form.year), notes: form.notes.trim() || undefined };
     if (!data.title || !data.amount || !data.month || !data.year) { toast({ title: "Fill in all required fields", variant: "destructive" }); return; }
-    if (editId != null) { updateExpense.mutate({ id: editId, data }); }
-    else { createExpense.mutate({ data }); }
+    if (editId != null) updateExpense.mutate({ id: editId, data });
+    else createExpense.mutate({ data });
   };
 
   return (
-    <div className="p-8 space-y-6 page-enter">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-8 space-y-5 md:space-y-6 page-enter">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-          <p className="text-muted-foreground mt-1">Track organizational spending</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Expenses</h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">Track organizational spending</p>
         </div>
-        <Button onClick={openAdd} className="gap-2 btn-ripple shadow-md shadow-primary/20"><Plus className="w-4 h-4" /> Add Expense</Button>
+        <Button onClick={openAdd} className="gap-2 btn-ripple shadow-md shadow-primary/20 shrink-0">
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Add Expense</span>
+          <span className="sm:hidden">Add</span>
+        </Button>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-2 flex-wrap">
         <Select value={filterMonth} onValueChange={setFilterMonth}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="All months" /></SelectTrigger>
+          <SelectTrigger className="w-32 md:w-36"><SelectValue placeholder="All months" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All months</SelectItem>
             {MONTHS.map((m) => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={String(filterYear)} onValueChange={(v) => setFilterYear(Number(v))}>
-          <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-20 md:w-24"><SelectValue /></SelectTrigger>
           <SelectContent>
             {generateYearOptions().map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
           </SelectContent>
@@ -116,22 +120,22 @@ export default function Expenses() {
       </div>
 
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Card className="stat-card hover:border-orange-300/50">
-            <CardContent className="pt-5 pb-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
-                <Receipt className="w-4 h-4 text-orange-600" />
+            <CardContent className="pt-4 pb-3 px-3 md:px-6 flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                <Receipt className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-600" />
               </div>
               <div>
-                <div className="text-xl font-bold text-orange-600">{formatCurrency(summary.totalExpenses)}</div>
+                <div className="text-base md:text-xl font-bold text-orange-600">{formatCurrency(summary.totalExpenses)}</div>
                 <div className="text-xs text-muted-foreground">Total Expenses</div>
               </div>
             </CardContent>
           </Card>
           {summary.byCategory.slice(0, 3).map((cat) => (
             <Card key={cat.category} className="stat-card hover:border-primary/20">
-              <CardContent className="pt-5 pb-4">
-                <div className="text-xl font-bold">{formatCurrency(cat.total)}</div>
+              <CardContent className="pt-4 pb-3 px-3 md:px-6">
+                <div className="text-base md:text-xl font-bold">{formatCurrency(cat.total)}</div>
                 <div className="text-xs text-muted-foreground mt-1">{cat.category} ({cat.count})</div>
               </CardContent>
             </Card>
@@ -140,48 +144,52 @@ export default function Expenses() {
       )}
 
       <Card className="hover:shadow-md transition-shadow duration-200">
-        <CardHeader><CardTitle>Expense Records</CardTitle></CardHeader>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg">Expense Records</CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="space-y-2 p-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-12 rounded-lg bg-muted/50 animate-pulse" />)}</div>
           ) : !expenses?.length ? (
             <div className="text-center py-12 text-muted-foreground">No expenses recorded yet.</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenses.map((e) => (
-                  <TableRow key={e.id} className="table-row-hover group">
-                    <TableCell className="font-semibold">{e.title}</TableCell>
-                    <TableCell><Badge className={`text-xs ${categoryStyle[e.category] ?? "bg-slate-100 text-slate-600"}`}>{e.category}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{monthLabel(e.month)} {e.year}</TableCell>
-                    <TableCell className="font-medium">{formatCurrency(e.amount)}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{e.notes ?? "-"}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(e)} className="hover:bg-blue-50 hover:text-blue-700"><Pencil className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:bg-red-50" onClick={() => setDeleteId(e.id)}><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="hidden sm:table-cell">Period</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead className="hidden md:table-cell">Notes</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {expenses.map((e) => (
+                    <TableRow key={e.id} className="table-row-hover group">
+                      <TableCell className="font-semibold text-sm">{e.title}</TableCell>
+                      <TableCell><Badge className={`text-xs ${categoryStyle[e.category] ?? "bg-slate-100 text-slate-600"}`}>{e.category}</Badge></TableCell>
+                      <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{monthLabel(e.month)} {e.year}</TableCell>
+                      <TableCell className="font-medium text-sm">{formatCurrency(e.amount)}</TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{e.notes ?? "-"}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(e)} className="hover:bg-blue-50 hover:text-blue-700 p-1 md:p-2"><Pencil className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="sm" className="text-destructive hover:bg-red-50 p-1 md:p-2" onClick={() => setDeleteId(e.id)}><Trash2 className="w-4 h-4" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-sm sm:max-w-lg">
           <DialogHeader><DialogTitle>{editId != null ? "Edit Expense" : "Add Expense"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -222,7 +230,7 @@ export default function Expenses() {
               <Input value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Optional notes" />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={createExpense.isPending || updateExpense.isPending} className="btn-ripple">
               {editId != null ? "Save Changes" : "Add Expense"}

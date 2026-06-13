@@ -12,16 +12,16 @@ export default function Dashboard() {
 
   if (statsLoading || unpaidLoading) {
     return (
-      <div className="p-8">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="p-4 md:p-8">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl bg-muted/60 animate-pulse" />
+            <div key={i} className="h-24 rounded-xl bg-muted/60 animate-pulse" />
           ))}
         </div>
       </div>
     );
   }
-  if (!stats) return <div className="p-8 text-muted-foreground">Error loading dashboard</div>;
+  if (!stats) return <div className="p-4 md:p-8 text-muted-foreground">Error loading dashboard</div>;
 
   const statCards = [
     {
@@ -57,26 +57,26 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-8 space-y-8 page-enter">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 page-enter">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Overview for {monthLabel(month)} {year}</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1 text-sm">Overview for {monthLabel(month)} {year}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3">
         {statCards.map((s) => {
           const Icon = s.icon;
           return (
             <Card key={s.label} className="stat-card border hover:border-primary/20 cursor-default overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
-                <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center`}>
-                  <Icon className={`h-4 w-4 ${s.iconColor}`} />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 md:pt-4 px-3 md:px-6">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground leading-tight">{s.label}</CardTitle>
+                <div className={`w-7 h-7 md:w-9 md:h-9 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
+                  <Icon className={`h-3.5 w-3.5 md:h-4 md:w-4 ${s.iconColor}`} />
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                {s.sub && <p className="text-xs text-muted-foreground mt-1">{s.sub}</p>}
+              <CardContent className="px-3 md:px-6 pb-3 md:pb-4">
+                <div className={`text-xl md:text-2xl font-bold ${s.color}`}>{s.value}</div>
+                {s.sub && <p className="text-xs text-muted-foreground mt-0.5">{s.sub}</p>}
               </CardContent>
             </Card>
           );
@@ -85,7 +85,7 @@ export default function Dashboard() {
 
       <Card className="hover:shadow-md transition-shadow duration-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
             <span className="w-2 h-2 rounded-full bg-red-500 pulse-dot" />
             Unpaid Members - {monthLabel(month)} {year}
           </CardTitle>
@@ -103,21 +103,23 @@ export default function Dashboard() {
               {unpaidMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-red-50/50 hover:border-red-200 transition-all duration-150 group"
+                  className="flex items-center justify-between p-3 border rounded-xl hover:bg-red-50/50 hover:border-red-200 transition-all duration-150 gap-2"
                 >
-                  <div>
-                    <div className="font-semibold text-sm">{member.name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm truncate">{member.name}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 truncate">
                       {member.registrationNumber} · {member.phone}
                     </div>
                   </div>
-                  <WhatsAppButton
-                    phone={member.phone}
-                    name={member.name}
-                    month={month}
-                    year={year}
-                    amount={settings?.monthlyDueAmount}
-                  />
+                  <div className="shrink-0">
+                    <WhatsAppButton
+                      phone={member.phone}
+                      name={member.name}
+                      month={month}
+                      year={year}
+                      amount={settings?.monthlyDueAmount}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
