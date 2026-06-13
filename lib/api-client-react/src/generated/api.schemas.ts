@@ -29,7 +29,7 @@ export interface Member {
   /** @nullable */
   notes?: string | null;
   status: MemberStatus;
-  joinDate?: string;
+  joinDate: string;
   createdAt: string;
 }
 
@@ -109,6 +109,8 @@ export interface DashboardStats {
   unpaidThisMonth: number;
   totalCollectedThisMonth: number;
   totalCollectedThisYear: number;
+  totalExpensesThisMonth: number;
+  netThisMonth: number;
   month: number;
   year: number;
 }
@@ -122,6 +124,8 @@ export interface MonthlyReport {
   totalCollected: number;
   expectedTotal: number;
   collectionRate: number;
+  totalExpenses: number;
+  net: number;
   payments: MemberPaymentStatus[];
 }
 
@@ -131,12 +135,16 @@ export interface MonthSummary {
   paid: number;
   unpaid: number;
   collected: number;
+  expenses: number;
+  net: number;
 }
 
 export interface YearlyReport {
   year: number;
   totalCollected: number;
   totalExpected: number;
+  totalExpenses: number;
+  net: number;
   monthlyBreakdown: MonthSummary[];
 }
 
@@ -153,6 +161,109 @@ export interface SettingsUpdate {
   monthlyDueAmount?: number;
   whatsappAlertTemplate?: string;
   currency?: string;
+}
+
+export interface Expense {
+  id: number;
+  title: string;
+  amount: number;
+  category: string;
+  month: number;
+  year: number;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface ExpenseInput {
+  /** @minLength 1 */
+  title: string;
+  amount: number;
+  category: string;
+  month: number;
+  year: number;
+  notes?: string;
+}
+
+export interface ExpenseUpdate {
+  title?: string;
+  amount?: number;
+  category?: string;
+  month?: number;
+  year?: number;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface ExpenseCategoryTotal {
+  category: string;
+  total: number;
+  count: number;
+}
+
+export interface ExpenseSummary {
+  totalExpenses: number;
+  byCategory: ExpenseCategoryTotal[];
+  /** @nullable */
+  month: number | null;
+  /** @nullable */
+  year: number | null;
+}
+
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+
+export const UserRole = {
+  admin: 'admin',
+  viewer: 'viewer',
+} as const;
+
+export interface User {
+  id: number;
+  username: string;
+  name: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+export type UserInputRole = typeof UserInputRole[keyof typeof UserInputRole];
+
+
+export const UserInputRole = {
+  admin: 'admin',
+  viewer: 'viewer',
+} as const;
+
+export interface UserInput {
+  /** @minLength 1 */
+  username: string;
+  /** @minLength 1 */
+  name: string;
+  role: UserInputRole;
+  /** @minLength 4 */
+  password: string;
+}
+
+export type UserUpdateRole = typeof UserUpdateRole[keyof typeof UserUpdateRole];
+
+
+export const UserUpdateRole = {
+  admin: 'admin',
+  viewer: 'viewer',
+} as const;
+
+export interface UserUpdate {
+  name?: string;
+  role?: UserUpdateRole;
+  password?: string;
+}
+
+export interface BackupData {
+  exportedAt: string;
+  members: Member[];
+  payments: Payment[];
+  expenses: Expense[];
+  settings: Settings;
 }
 
 export type ListMembersParams = {
@@ -196,5 +307,16 @@ year: number;
 export type GetUnpaidMembersParams = {
 month: number;
 year: number;
+};
+
+export type ListExpensesParams = {
+month?: number;
+year?: number;
+category?: string;
+};
+
+export type GetExpenseSummaryParams = {
+month?: number;
+year?: number;
 };
 

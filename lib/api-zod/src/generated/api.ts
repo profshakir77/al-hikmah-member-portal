@@ -16,9 +16,6 @@ export const HealthCheckResponse = zod.object({
 })
 
 
-/**
- * @summary List all members
- */
 export const ListMembersQueryParams = zod.object({
   "search": zod.coerce.string().optional(),
   "status": zod.enum(['active', 'inactive']).optional()
@@ -33,15 +30,12 @@ export const ListMembersResponseItem = zod.object({
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
-  "joinDate": zod.string().optional(),
+  "joinDate": zod.string(),
   "createdAt": zod.string()
 })
 export const ListMembersResponse = zod.array(ListMembersResponseItem)
 
 
-/**
- * @summary Create a new member
- */
 
 
 
@@ -56,9 +50,6 @@ export const CreateMemberBody = zod.object({
 })
 
 
-/**
- * @summary Get a member by ID
- */
 export const GetMemberParams = zod.object({
   "id": zod.coerce.number()
 })
@@ -72,14 +63,11 @@ export const GetMemberResponse = zod.object({
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
-  "joinDate": zod.string().optional(),
+  "joinDate": zod.string(),
   "createdAt": zod.string()
 })
 
 
-/**
- * @summary Update a member
- */
 export const UpdateMemberParams = zod.object({
   "id": zod.coerce.number()
 })
@@ -103,22 +91,16 @@ export const UpdateMemberResponse = zod.object({
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
-  "joinDate": zod.string().optional(),
+  "joinDate": zod.string(),
   "createdAt": zod.string()
 })
 
 
-/**
- * @summary Delete a member
- */
 export const DeleteMemberParams = zod.object({
   "id": zod.coerce.number()
 })
 
 
-/**
- * @summary Get payments for a member
- */
 export const GetMemberPaymentsParams = zod.object({
   "id": zod.coerce.number()
 })
@@ -137,9 +119,6 @@ export const GetMemberPaymentsResponseItem = zod.object({
 export const GetMemberPaymentsResponse = zod.array(GetMemberPaymentsResponseItem)
 
 
-/**
- * @summary List payments
- */
 export const ListPaymentsQueryParams = zod.object({
   "month": zod.coerce.number().optional(),
   "year": zod.coerce.number().optional(),
@@ -160,9 +139,6 @@ export const ListPaymentsResponseItem = zod.object({
 export const ListPaymentsResponse = zod.array(ListPaymentsResponseItem)
 
 
-/**
- * @summary Record a payment
- */
 export const CreatePaymentBody = zod.object({
   "memberId": zod.number(),
   "amount": zod.number(),
@@ -172,17 +148,11 @@ export const CreatePaymentBody = zod.object({
 })
 
 
-/**
- * @summary Delete a payment record
- */
 export const DeletePaymentParams = zod.object({
   "id": zod.coerce.number()
 })
 
 
-/**
- * @summary Get payment status for all members for a given month/year
- */
 export const GetPaymentStatusQueryParams = zod.object({
   "month": zod.coerce.number(),
   "year": zod.coerce.number()
@@ -203,9 +173,6 @@ export const GetPaymentStatusResponseItem = zod.object({
 export const GetPaymentStatusResponse = zod.array(GetPaymentStatusResponseItem)
 
 
-/**
- * @summary Get dashboard summary stats
- */
 export const GetDashboardStatsQueryParams = zod.object({
   "month": zod.coerce.number().optional(),
   "year": zod.coerce.number().optional()
@@ -218,14 +185,13 @@ export const GetDashboardStatsResponse = zod.object({
   "unpaidThisMonth": zod.number(),
   "totalCollectedThisMonth": zod.number(),
   "totalCollectedThisYear": zod.number(),
+  "totalExpensesThisMonth": zod.number(),
+  "netThisMonth": zod.number(),
   "month": zod.number(),
   "year": zod.number()
 })
 
 
-/**
- * @summary Get monthly payment report
- */
 export const GetMonthlyReportQueryParams = zod.object({
   "month": zod.coerce.number(),
   "year": zod.coerce.number()
@@ -240,6 +206,8 @@ export const GetMonthlyReportResponse = zod.object({
   "totalCollected": zod.number(),
   "expectedTotal": zod.number(),
   "collectionRate": zod.number(),
+  "totalExpenses": zod.number(),
+  "net": zod.number(),
   "payments": zod.array(zod.object({
   "memberId": zod.number(),
   "registrationNumber": zod.string(),
@@ -255,9 +223,6 @@ export const GetMonthlyReportResponse = zod.object({
 })
 
 
-/**
- * @summary Get yearly payment report
- */
 export const GetYearlyReportQueryParams = zod.object({
   "year": zod.coerce.number()
 })
@@ -266,19 +231,20 @@ export const GetYearlyReportResponse = zod.object({
   "year": zod.number(),
   "totalCollected": zod.number(),
   "totalExpected": zod.number(),
+  "totalExpenses": zod.number(),
+  "net": zod.number(),
   "monthlyBreakdown": zod.array(zod.object({
   "month": zod.number(),
   "year": zod.number(),
   "paid": zod.number(),
   "unpaid": zod.number(),
-  "collected": zod.number()
+  "collected": zod.number(),
+  "expenses": zod.number(),
+  "net": zod.number()
 }))
 })
 
 
-/**
- * @summary Get members who haven't paid for the current month
- */
 export const GetUnpaidMembersQueryParams = zod.object({
   "month": zod.coerce.number(),
   "year": zod.coerce.number()
@@ -293,15 +259,12 @@ export const GetUnpaidMembersResponseItem = zod.object({
   "address": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
-  "joinDate": zod.string().optional(),
+  "joinDate": zod.string(),
   "createdAt": zod.string()
 })
 export const GetUnpaidMembersResponse = zod.array(GetUnpaidMembersResponseItem)
 
 
-/**
- * @summary Get portal settings
- */
 export const GetSettingsResponse = zod.object({
   "id": zod.number(),
   "organizationName": zod.string(),
@@ -311,9 +274,6 @@ export const GetSettingsResponse = zod.object({
 })
 
 
-/**
- * @summary Update portal settings
- */
 export const UpdateSettingsBody = zod.object({
   "organizationName": zod.string().optional(),
   "monthlyDueAmount": zod.number().optional(),
@@ -327,6 +287,181 @@ export const UpdateSettingsResponse = zod.object({
   "monthlyDueAmount": zod.number(),
   "whatsappAlertTemplate": zod.string(),
   "currency": zod.string()
+})
+
+
+export const ListExpensesQueryParams = zod.object({
+  "month": zod.coerce.number().optional(),
+  "year": zod.coerce.number().optional(),
+  "category": zod.coerce.string().optional()
+})
+
+export const ListExpensesResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "amount": zod.number(),
+  "category": zod.string(),
+  "month": zod.number(),
+  "year": zod.number(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListExpensesResponse = zod.array(ListExpensesResponseItem)
+
+
+
+
+
+export const CreateExpenseBody = zod.object({
+  "title": zod.string().min(1),
+  "amount": zod.number(),
+  "category": zod.string(),
+  "month": zod.number(),
+  "year": zod.number(),
+  "notes": zod.string().optional()
+})
+
+
+export const UpdateExpenseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateExpenseBody = zod.object({
+  "title": zod.string().optional(),
+  "amount": zod.number().optional(),
+  "category": zod.string().optional(),
+  "month": zod.number().optional(),
+  "year": zod.number().optional(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateExpenseResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "amount": zod.number(),
+  "category": zod.string(),
+  "month": zod.number(),
+  "year": zod.number(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteExpenseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const GetExpenseSummaryQueryParams = zod.object({
+  "month": zod.coerce.number().optional(),
+  "year": zod.coerce.number().optional()
+})
+
+export const GetExpenseSummaryResponse = zod.object({
+  "totalExpenses": zod.number(),
+  "byCategory": zod.array(zod.object({
+  "category": zod.string(),
+  "total": zod.number(),
+  "count": zod.number()
+})),
+  "month": zod.number().nullable(),
+  "year": zod.number().nullable()
+})
+
+
+export const ListUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['admin', 'viewer']),
+  "createdAt": zod.string()
+})
+export const ListUsersResponse = zod.array(ListUsersResponseItem)
+
+
+
+
+export const createUserBodyPasswordMin = 4;
+
+
+
+export const CreateUserBody = zod.object({
+  "username": zod.string().min(1),
+  "name": zod.string().min(1),
+  "role": zod.enum(['admin', 'viewer']),
+  "password": zod.string().min(createUserBodyPasswordMin)
+})
+
+
+export const UpdateUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateUserBody = zod.object({
+  "name": zod.string().optional(),
+  "role": zod.enum(['admin', 'viewer']).optional(),
+  "password": zod.string().optional()
+})
+
+export const UpdateUserResponse = zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['admin', 'viewer']),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Export full data backup as JSON
+ */
+export const ExportBackupResponse = zod.object({
+  "exportedAt": zod.string(),
+  "members": zod.array(zod.object({
+  "id": zod.number(),
+  "registrationNumber": zod.string(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "email": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "joinDate": zod.string(),
+  "createdAt": zod.string()
+})),
+  "payments": zod.array(zod.object({
+  "id": zod.number(),
+  "memberId": zod.number(),
+  "memberName": zod.string().optional(),
+  "memberRegistrationNumber": zod.string().optional(),
+  "amount": zod.number(),
+  "month": zod.number(),
+  "year": zod.number(),
+  "notes": zod.string().nullish(),
+  "paidAt": zod.string()
+})),
+  "expenses": zod.array(zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "amount": zod.number(),
+  "category": zod.string(),
+  "month": zod.number(),
+  "year": zod.number(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})),
+  "settings": zod.object({
+  "id": zod.number(),
+  "organizationName": zod.string(),
+  "monthlyDueAmount": zod.number(),
+  "whatsappAlertTemplate": zod.string(),
+  "currency": zod.string()
+})
 })
 
 

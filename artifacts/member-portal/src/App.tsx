@@ -10,7 +10,10 @@ import Members from "./pages/members";
 import MemberNew from "./pages/member-new";
 import MemberDetail from "./pages/member-detail";
 import Payments from "./pages/payments";
+import Expenses from "./pages/expenses";
 import Reports from "./pages/reports";
+import Users from "./pages/users";
+import Backup from "./pages/backup";
 import Settings from "./pages/settings";
 
 const queryClient = new QueryClient();
@@ -24,7 +27,10 @@ function Router() {
         <Route path="/members/new" component={MemberNew} />
         <Route path="/members/:id" component={MemberDetail} />
         <Route path="/payments" component={Payments} />
+        <Route path="/expenses" component={Expenses} />
         <Route path="/reports" component={Reports} />
+        <Route path="/users" component={Users} />
+        <Route path="/backup" component={Backup} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

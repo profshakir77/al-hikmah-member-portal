@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { format } from "date-fns";
 
 export const MONTHS = [
   { value: 1, label: "January" },
@@ -31,6 +30,10 @@ export function generateYearOptions(range: number = 5) {
   return Array.from({ length: range * 2 + 1 }, (_, i) => currentYear - range + i).sort((a, b) => b - a);
 }
 
-export function formatCurrency(amount: number, currency: string = "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
+export function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount);
+}
+
+export function monthLabel(m: number): string {
+  return MONTHS.find((x) => x.value === m)?.label ?? String(m);
 }

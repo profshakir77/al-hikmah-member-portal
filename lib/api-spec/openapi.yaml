@@ -9,15 +9,13 @@ servers:
     description: Base API path
 tags:
   - name: health
-    description: Health operations
   - name: members
-    description: Member operations
   - name: payments
-    description: Payment operations
   - name: reports
-    description: Report operations
   - name: settings
-    description: Settings operations
+  - name: expenses
+  - name: users
+  - name: backup
 paths:
   /healthz:
     get:
@@ -36,17 +34,13 @@ paths:
     get:
       operationId: listMembers
       tags: [members]
-      summary: List all members
       parameters:
         - name: search
           in: query
-          schema:
-            type: string
+          schema: { type: string }
         - name: status
           in: query
-          schema:
-            type: string
-            enum: [active, inactive]
+          schema: { type: string, enum: [active, inactive] }
       responses:
         "200":
           description: List of members
@@ -59,7 +53,6 @@ paths:
     post:
       operationId: createMember
       tags: [members]
-      summary: Create a new member
       requestBody:
         required: true
         content:
@@ -68,7 +61,7 @@ paths:
               $ref: "#/components/schemas/MemberInput"
       responses:
         "201":
-          description: Created member
+          description: Created
           content:
             application/json:
               schema:
@@ -78,13 +71,11 @@ paths:
     get:
       operationId: getMember
       tags: [members]
-      summary: Get a member by ID
       parameters:
         - name: id
           in: path
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
           description: Member
@@ -97,13 +88,11 @@ paths:
     patch:
       operationId: updateMember
       tags: [members]
-      summary: Update a member
       parameters:
         - name: id
           in: path
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       requestBody:
         required: true
         content:
@@ -112,7 +101,7 @@ paths:
               $ref: "#/components/schemas/MemberUpdate"
       responses:
         "200":
-          description: Updated member
+          description: Updated
           content:
             application/json:
               schema:
@@ -120,13 +109,11 @@ paths:
     delete:
       operationId: deleteMember
       tags: [members]
-      summary: Delete a member
       parameters:
         - name: id
           in: path
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "204":
           description: Deleted
@@ -135,13 +122,11 @@ paths:
     get:
       operationId: getMemberPayments
       tags: [members]
-      summary: Get payments for a member
       parameters:
         - name: id
           in: path
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
           description: Member payments
@@ -156,23 +141,19 @@ paths:
     get:
       operationId: listPayments
       tags: [payments]
-      summary: List payments
       parameters:
         - name: month
           in: query
-          schema:
-            type: integer
+          schema: { type: integer }
         - name: year
           in: query
-          schema:
-            type: integer
+          schema: { type: integer }
         - name: memberId
           in: query
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
-          description: List of payments
+          description: Payments
           content:
             application/json:
               schema:
@@ -182,7 +163,6 @@ paths:
     post:
       operationId: createPayment
       tags: [payments]
-      summary: Record a payment
       requestBody:
         required: true
         content:
@@ -191,7 +171,7 @@ paths:
               $ref: "#/components/schemas/PaymentInput"
       responses:
         "201":
-          description: Created payment
+          description: Created
           content:
             application/json:
               schema:
@@ -201,13 +181,11 @@ paths:
     delete:
       operationId: deletePayment
       tags: [payments]
-      summary: Delete a payment record
       parameters:
         - name: id
           in: path
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "204":
           description: Deleted
@@ -216,18 +194,15 @@ paths:
     get:
       operationId: getPaymentStatus
       tags: [payments]
-      summary: Get payment status for all members for a given month/year
       parameters:
         - name: month
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
         - name: year
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
           description: Monthly payment statuses
@@ -242,19 +217,16 @@ paths:
     get:
       operationId: getDashboardStats
       tags: [reports]
-      summary: Get dashboard summary stats
       parameters:
         - name: month
           in: query
-          schema:
-            type: integer
+          schema: { type: integer }
         - name: year
           in: query
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
-          description: Dashboard statistics
+          description: Dashboard stats
           content:
             application/json:
               schema:
@@ -264,18 +236,15 @@ paths:
     get:
       operationId: getMonthlyReport
       tags: [reports]
-      summary: Get monthly payment report
       parameters:
         - name: month
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
         - name: year
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
           description: Monthly report
@@ -288,13 +257,11 @@ paths:
     get:
       operationId: getYearlyReport
       tags: [reports]
-      summary: Get yearly payment report
       parameters:
         - name: year
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
           description: Yearly report
@@ -307,18 +274,15 @@ paths:
     get:
       operationId: getUnpaidMembers
       tags: [reports]
-      summary: Get members who haven't paid for the current month
       parameters:
         - name: month
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
         - name: year
           in: query
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
       responses:
         "200":
           description: Unpaid members
@@ -333,7 +297,6 @@ paths:
     get:
       operationId: getSettings
       tags: [settings]
-      summary: Get portal settings
       responses:
         "200":
           description: Settings
@@ -344,7 +307,6 @@ paths:
     patch:
       operationId: updateSettings
       tags: [settings]
-      summary: Update portal settings
       requestBody:
         required: true
         content:
@@ -353,232 +315,295 @@ paths:
               $ref: "#/components/schemas/SettingsUpdate"
       responses:
         "200":
-          description: Updated settings
+          description: Updated
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Settings"
+
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      parameters:
+        - name: month
+          in: query
+          schema: { type: integer }
+        - name: year
+          in: query
+          schema: { type: integer }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+
+  /expenses/{id}:
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /expenses/summary:
+    get:
+      operationId: getExpenseSummary
+      tags: [expenses]
+      parameters:
+        - name: month
+          in: query
+          schema: { type: integer }
+        - name: year
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Expense summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSummary"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /backup/export:
+    get:
+      operationId: exportBackup
+      tags: [backup]
+      summary: Export full data backup as JSON
+      responses:
+        "200":
+          description: Full backup
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupData"
 
 components:
   schemas:
     HealthStatus:
       type: object
       properties:
-        status:
-          type: string
-      required:
-        - status
+        status: { type: string }
+      required: [status]
 
     Member:
       type: object
-      required:
-        - id
-        - registrationNumber
-        - name
-        - phone
-        - status
-        - createdAt
+      required: [id, registrationNumber, name, phone, status, createdAt, joinDate]
       properties:
-        id:
-          type: integer
-        registrationNumber:
-          type: string
-        name:
-          type: string
-        phone:
-          type: string
-        email:
-          type: ["string", "null"]
-        address:
-          type: ["string", "null"]
-        notes:
-          type: ["string", "null"]
-        status:
-          type: string
-          enum: [active, inactive]
-        joinDate:
-          type: string
-        createdAt:
-          type: string
+        id: { type: integer }
+        registrationNumber: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        status: { type: string, enum: [active, inactive] }
+        joinDate: { type: string }
+        createdAt: { type: string }
 
     MemberInput:
       type: object
-      required:
-        - name
-        - phone
+      required: [name, phone]
       properties:
-        name:
-          type: string
-          minLength: 1
-        phone:
-          type: string
-          minLength: 1
-        email:
-          type: string
-        address:
-          type: string
-        notes:
-          type: string
-        joinDate:
-          type: string
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        email: { type: string }
+        address: { type: string }
+        notes: { type: string }
+        joinDate: { type: string }
 
     MemberUpdate:
       type: object
       properties:
-        name:
-          type: string
-        phone:
-          type: string
-        email:
-          type: ["string", "null"]
-        address:
-          type: ["string", "null"]
-        notes:
-          type: ["string", "null"]
-        status:
-          type: string
-          enum: [active, inactive]
-        joinDate:
-          type: string
+        name: { type: string }
+        phone: { type: string }
+        email: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        status: { type: string, enum: [active, inactive] }
+        joinDate: { type: string }
 
     Payment:
       type: object
-      required:
-        - id
-        - memberId
-        - amount
-        - month
-        - year
-        - paidAt
+      required: [id, memberId, amount, month, year, paidAt]
       properties:
-        id:
-          type: integer
-        memberId:
-          type: integer
-        memberName:
-          type: string
-        memberRegistrationNumber:
-          type: string
-        amount:
-          type: number
-        month:
-          type: integer
-        year:
-          type: integer
-        notes:
-          type: ["string", "null"]
-        paidAt:
-          type: string
+        id: { type: integer }
+        memberId: { type: integer }
+        memberName: { type: string }
+        memberRegistrationNumber: { type: string }
+        amount: { type: number }
+        month: { type: integer }
+        year: { type: integer }
+        notes: { type: ["string", "null"] }
+        paidAt: { type: string }
 
     PaymentInput:
       type: object
-      required:
-        - memberId
-        - amount
-        - month
-        - year
+      required: [memberId, amount, month, year]
       properties:
-        memberId:
-          type: integer
-        amount:
-          type: number
-        month:
-          type: integer
-        year:
-          type: integer
-        notes:
-          type: string
+        memberId: { type: integer }
+        amount: { type: number }
+        month: { type: integer }
+        year: { type: integer }
+        notes: { type: string }
 
     MemberPaymentStatus:
       type: object
-      required:
-        - memberId
-        - registrationNumber
-        - name
-        - phone
-        - paid
-        - month
-        - year
+      required: [memberId, registrationNumber, name, phone, paid, month, year]
       properties:
-        memberId:
-          type: integer
-        registrationNumber:
-          type: string
-        name:
-          type: string
-        phone:
-          type: string
-        paid:
-          type: boolean
-        amount:
-          type: ["number", "null"]
-        paidAt:
-          type: ["string", "null"]
-        paymentId:
-          type: ["integer", "null"]
-        month:
-          type: integer
-        year:
-          type: integer
+        memberId: { type: integer }
+        registrationNumber: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        paid: { type: boolean }
+        amount: { type: ["number", "null"] }
+        paidAt: { type: ["string", "null"] }
+        paymentId: { type: ["integer", "null"] }
+        month: { type: integer }
+        year: { type: integer }
 
     DashboardStats:
       type: object
-      required:
-        - totalMembers
-        - activeMembers
-        - paidThisMonth
-        - unpaidThisMonth
-        - totalCollectedThisMonth
-        - totalCollectedThisYear
-        - month
-        - year
+      required: [totalMembers, activeMembers, paidThisMonth, unpaidThisMonth, totalCollectedThisMonth, totalCollectedThisYear, totalExpensesThisMonth, netThisMonth, month, year]
       properties:
-        totalMembers:
-          type: integer
-        activeMembers:
-          type: integer
-        paidThisMonth:
-          type: integer
-        unpaidThisMonth:
-          type: integer
-        totalCollectedThisMonth:
-          type: number
-        totalCollectedThisYear:
-          type: number
-        month:
-          type: integer
-        year:
-          type: integer
+        totalMembers: { type: integer }
+        activeMembers: { type: integer }
+        paidThisMonth: { type: integer }
+        unpaidThisMonth: { type: integer }
+        totalCollectedThisMonth: { type: number }
+        totalCollectedThisYear: { type: number }
+        totalExpensesThisMonth: { type: number }
+        netThisMonth: { type: number }
+        month: { type: integer }
+        year: { type: integer }
 
     MonthlyReport:
       type: object
-      required:
-        - month
-        - year
-        - totalMembers
-        - paid
-        - unpaid
-        - totalCollected
-        - expectedTotal
-        - collectionRate
-        - payments
+      required: [month, year, totalMembers, paid, unpaid, totalCollected, expectedTotal, collectionRate, totalExpenses, net, payments]
       properties:
-        month:
-          type: integer
-        year:
-          type: integer
-        totalMembers:
-          type: integer
-        paid:
-          type: integer
-        unpaid:
-          type: integer
-        totalCollected:
-          type: number
-        expectedTotal:
-          type: number
-        collectionRate:
-          type: number
+        month: { type: integer }
+        year: { type: integer }
+        totalMembers: { type: integer }
+        paid: { type: integer }
+        unpaid: { type: integer }
+        totalCollected: { type: number }
+        expectedTotal: { type: number }
+        collectionRate: { type: number }
+        totalExpenses: { type: number }
+        net: { type: number }
         payments:
           type: array
           items:
@@ -586,18 +611,13 @@ components:
 
     YearlyReport:
       type: object
-      required:
-        - year
-        - totalCollected
-        - totalExpected
-        - monthlyBreakdown
+      required: [year, totalCollected, totalExpected, totalExpenses, net, monthlyBreakdown]
       properties:
-        year:
-          type: integer
-        totalCollected:
-          type: number
-        totalExpected:
-          type: number
+        year: { type: integer }
+        totalCollected: { type: number }
+        totalExpected: { type: number }
+        totalExpenses: { type: number }
+        net: { type: number }
         monthlyBreakdown:
           type: array
           items:
@@ -605,52 +625,130 @@ components:
 
     MonthSummary:
       type: object
-      required:
-        - month
-        - year
-        - paid
-        - unpaid
-        - collected
+      required: [month, year, paid, unpaid, collected, expenses, net]
       properties:
-        month:
-          type: integer
-        year:
-          type: integer
-        paid:
-          type: integer
-        unpaid:
-          type: integer
-        collected:
-          type: number
+        month: { type: integer }
+        year: { type: integer }
+        paid: { type: integer }
+        unpaid: { type: integer }
+        collected: { type: number }
+        expenses: { type: number }
+        net: { type: number }
 
     Settings:
       type: object
-      required:
-        - id
-        - organizationName
-        - monthlyDueAmount
-        - whatsappAlertTemplate
-        - currency
+      required: [id, organizationName, monthlyDueAmount, whatsappAlertTemplate, currency]
       properties:
-        id:
-          type: integer
-        organizationName:
-          type: string
-        monthlyDueAmount:
-          type: number
-        whatsappAlertTemplate:
-          type: string
-        currency:
-          type: string
+        id: { type: integer }
+        organizationName: { type: string }
+        monthlyDueAmount: { type: number }
+        whatsappAlertTemplate: { type: string }
+        currency: { type: string }
 
     SettingsUpdate:
       type: object
       properties:
-        organizationName:
-          type: string
-        monthlyDueAmount:
-          type: number
-        whatsappAlertTemplate:
-          type: string
-        currency:
-          type: string
+        organizationName: { type: string }
+        monthlyDueAmount: { type: number }
+        whatsappAlertTemplate: { type: string }
+        currency: { type: string }
+
+    Expense:
+      type: object
+      required: [id, title, amount, category, month, year, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        amount: { type: number }
+        category: { type: string }
+        month: { type: integer }
+        year: { type: integer }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    ExpenseInput:
+      type: object
+      required: [title, amount, category, month, year]
+      properties:
+        title: { type: string, minLength: 1 }
+        amount: { type: number }
+        category: { type: string }
+        month: { type: integer }
+        year: { type: integer }
+        notes: { type: string }
+
+    ExpenseUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        amount: { type: number }
+        category: { type: string }
+        month: { type: integer }
+        year: { type: integer }
+        notes: { type: ["string", "null"] }
+
+    ExpenseSummary:
+      type: object
+      required: [totalExpenses, byCategory, month, year]
+      properties:
+        totalExpenses: { type: number }
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseCategoryTotal"
+        month: { type: ["integer", "null"] }
+        year: { type: ["integer", "null"] }
+
+    ExpenseCategoryTotal:
+      type: object
+      required: [category, total, count]
+      properties:
+        category: { type: string }
+        total: { type: number }
+        count: { type: integer }
+
+    User:
+      type: object
+      required: [id, username, name, role, createdAt]
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        name: { type: string }
+        role: { type: string, enum: [admin, viewer] }
+        createdAt: { type: string }
+
+    UserInput:
+      type: object
+      required: [username, name, role, password]
+      properties:
+        username: { type: string, minLength: 1 }
+        name: { type: string, minLength: 1 }
+        role: { type: string, enum: [admin, viewer] }
+        password: { type: string, minLength: 4 }
+
+    UserUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        role: { type: string, enum: [admin, viewer] }
+        password: { type: string }
+
+    BackupData:
+      type: object
+      required: [exportedAt, members, payments, expenses, settings]
+      properties:
+        exportedAt: { type: string }
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+        expenses:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expense"
+        settings:
+          $ref: "#/components/schemas/Settings"

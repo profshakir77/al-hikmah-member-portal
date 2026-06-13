@@ -4,6 +4,9 @@ import { membersRouter } from "./members";
 import { paymentsRouter } from "./payments";
 import { reportsRouter } from "./reports";
 import { settingsRouter } from "./settings";
+import { expensesRouter } from "./expenses";
+import { usersRouter } from "./users";
+import { backupRouter } from "./backup";
 
 const router: IRouter = Router();
 
@@ -12,5 +15,8 @@ router.use("/members", membersRouter);
 router.use("/payments", paymentsRouter);
 router.use("/reports", reportsRouter);
 router.use("/settings", settingsRouter);
+router.use("/expenses", expensesRouter);
+router.use("/users", usersRouter);
+router.use("/backup", backupRouter);
 
 export default router;

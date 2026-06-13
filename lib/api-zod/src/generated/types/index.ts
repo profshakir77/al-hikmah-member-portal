@@ -6,13 +6,21 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './backupData';
 export * from './dashboardStats';
+export * from './expense';
+export * from './expenseCategoryTotal';
+export * from './expenseInput';
+export * from './expenseSummary';
+export * from './expenseUpdate';
 export * from './getDashboardStatsParams';
+export * from './getExpenseSummaryParams';
 export * from './getMonthlyReportParams';
 export * from './getPaymentStatusParams';
 export * from './getUnpaidMembersParams';
 export * from './getYearlyReportParams';
 export * from './healthStatus';
+export * from './listExpensesParams';
 export * from './listMembersParams';
 export * from './listMembersStatus';
 export * from './listPaymentsParams';
@@ -28,4 +36,10 @@ export * from './payment';
 export * from './paymentInput';
 export * from './settings';
 export * from './settingsUpdate';
+export * from './user';
+export * from './userInput';
+export * from './userInputRole';
+export * from './userRole';
+export * from './userUpdate';
+export * from './userUpdateRole';
 export * from './yearlyReport';

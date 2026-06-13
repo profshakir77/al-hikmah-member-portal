@@ -19,6 +19,6 @@ export interface Member {
   /** @nullable */
   notes?: string | null;
   status: MemberStatus;
-  joinDate?: string;
+  joinDate: string;
   createdAt: string;
 }

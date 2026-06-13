@@ -13,6 +13,8 @@ export interface DashboardStats {
   unpaidThisMonth: number;
   totalCollectedThisMonth: number;
   totalCollectedThisYear: number;
+  totalExpensesThisMonth: number;
+  netThisMonth: number;
   month: number;
   year: number;
 }

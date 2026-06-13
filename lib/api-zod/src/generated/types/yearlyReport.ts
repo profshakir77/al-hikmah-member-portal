@@ -11,5 +11,7 @@ export interface YearlyReport {
   year: number;
   totalCollected: number;
   totalExpected: number;
+  totalExpenses: number;
+  net: number;
   monthlyBreakdown: MonthSummary[];
 }

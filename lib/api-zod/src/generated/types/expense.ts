@@ -6,12 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface MonthSummary {
+export interface Expense {
+  id: number;
+  title: string;
+  amount: number;
+  category: string;
   month: number;
   year: number;
-  paid: number;
-  unpaid: number;
-  collected: number;
-  expenses: number;
-  net: number;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
 }

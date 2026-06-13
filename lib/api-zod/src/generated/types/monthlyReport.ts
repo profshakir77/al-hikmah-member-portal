@@ -16,5 +16,7 @@ export interface MonthlyReport {
   totalCollected: number;
   expectedTotal: number;
   collectionRate: number;
+  totalExpenses: number;
+  net: number;
   payments: MemberPaymentStatus[];
 }

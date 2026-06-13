@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db, membersTable, paymentsTable, settingsTable } from "@workspace/db";
+import { expensesTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import {
   GetDashboardStatsQueryParams,
@@ -43,13 +44,29 @@ router.get("/dashboard", async (req, res) => {
     .from(paymentsTable)
     .where(eq(paymentsTable.year, year));
 
+  const [{ totalExpensesThisMonth }] = await db
+    .select({ totalExpensesThisMonth: sql<number>`coalesce(sum(amount::numeric), 0)::float` })
+    .from(expensesTable)
+    .where(and(eq(expensesTable.month, month), eq(expensesTable.year, year)));
+
+  const [{ totalExpensesThisYear }] = await db
+    .select({ totalExpensesThisYear: sql<number>`coalesce(sum(amount::numeric), 0)::float` })
+    .from(expensesTable)
+    .where(eq(expensesTable.year, year));
+
+  const collected = totalCollectedThisMonth ?? 0;
+  const expenses = totalExpensesThisMonth ?? 0;
+
   return res.json({
     totalMembers: totalMembers ?? 0,
     activeMembers: activeMembers ?? 0,
     paidThisMonth: paidThisMonth ?? 0,
     unpaidThisMonth: Math.max(0, (activeMembers ?? 0) - (paidThisMonth ?? 0)),
-    totalCollectedThisMonth: totalCollectedThisMonth ?? 0,
+    totalCollectedThisMonth: collected,
     totalCollectedThisYear: totalCollectedThisYear ?? 0,
+    totalExpensesThisMonth: expenses,
+    totalExpensesThisYear: totalExpensesThisYear ?? 0,
+    netThisMonth: collected - expenses,
     month,
     year,
   });
@@ -72,6 +89,11 @@ router.get("/monthly", async (req, res) => {
     .select()
     .from(paymentsTable)
     .where(and(eq(paymentsTable.month, month), eq(paymentsTable.year, year)));
+
+  const expenses = await db
+    .select()
+    .from(expensesTable)
+    .where(and(eq(expensesTable.month, month), eq(expensesTable.year, year)));
 
   const [settingsRow] = await db.select().from(settingsTable);
   const monthlyDue = Number(settingsRow?.monthlyDueAmount ?? 10);
@@ -96,6 +118,7 @@ router.get("/monthly", async (req, res) => {
 
   const paid = paymentStatuses.filter((p) => p.paid).length;
   const totalCollected = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const expectedTotal = members.length * monthlyDue;
 
   return res.json({
@@ -105,6 +128,8 @@ router.get("/monthly", async (req, res) => {
     paid,
     unpaid: members.length - paid,
     totalCollected,
+    totalExpenses,
+    net: totalCollected - totalExpenses,
     expectedTotal,
     collectionRate: members.length > 0 ? (paid / members.length) * 100 : 0,
     payments: paymentStatuses,
@@ -131,25 +156,38 @@ router.get("/yearly", async (req, res) => {
     .from(paymentsTable)
     .where(eq(paymentsTable.year, year));
 
+  const expenses = await db
+    .select()
+    .from(expensesTable)
+    .where(eq(expensesTable.year, year));
+
   const monthlyBreakdown = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
     const monthPayments = payments.filter((p) => p.month === m);
+    const monthExpenses = expenses.filter((e) => e.month === m);
+    const collected = monthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const exp = monthExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
     return {
       month: m,
       year,
       paid: monthPayments.length,
       unpaid: Math.max(0, (activeMembers ?? 0) - monthPayments.length),
-      collected: monthPayments.reduce((sum, p) => sum + Number(p.amount), 0),
+      collected,
+      expenses: exp,
+      net: collected - exp,
     };
   });
 
   const totalCollected = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const totalExpected = (activeMembers ?? 0) * monthlyDue * 12;
 
   return res.json({
     year,
     totalCollected,
     totalExpected,
+    totalExpenses,
+    net: totalCollected - totalExpenses,
     monthlyBreakdown,
   });
 });
