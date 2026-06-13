@@ -15,6 +15,8 @@ async function ensureSettings() {
         monthlyDueAmount: "10.00",
         whatsappAlertTemplate:
           "Dear {name}, your monthly contribution of {amount} {currency} for {month}/{year} is outstanding. Please pay at your earliest convenience. Thank you.",
+        whatsappReceiptTemplate:
+          "Dear {name}, we have received your payment of {amount} {currency} for {month} {year}. JazakAllah Khair! - Al-Hikmah Community Center",
         currency: "EUR",
       })
       .returning();
@@ -43,6 +45,7 @@ router.patch("/", async (req, res) => {
   if (d.organizationName !== undefined) updates.organizationName = d.organizationName;
   if (d.monthlyDueAmount !== undefined) updates.monthlyDueAmount = String(d.monthlyDueAmount);
   if (d.whatsappAlertTemplate !== undefined) updates.whatsappAlertTemplate = d.whatsappAlertTemplate;
+  if (d.whatsappReceiptTemplate !== undefined) updates.whatsappReceiptTemplate = d.whatsappReceiptTemplate;
   if (d.currency !== undefined) updates.currency = d.currency;
 
   const [updated] = await db

@@ -271,6 +271,7 @@ export const GetSettingsResponse = zod.object({
   "organizationName": zod.string(),
   "monthlyDueAmount": zod.number(),
   "whatsappAlertTemplate": zod.string(),
+  "whatsappReceiptTemplate": zod.string(),
   "currency": zod.string()
 })
 
@@ -279,6 +280,7 @@ export const UpdateSettingsBody = zod.object({
   "organizationName": zod.string().optional(),
   "monthlyDueAmount": zod.number().optional(),
   "whatsappAlertTemplate": zod.string().optional(),
+  "whatsappReceiptTemplate": zod.string().optional(),
   "currency": zod.string().optional()
 })
 
@@ -287,6 +289,7 @@ export const UpdateSettingsResponse = zod.object({
   "organizationName": zod.string(),
   "monthlyDueAmount": zod.number(),
   "whatsappAlertTemplate": zod.string(),
+  "whatsappReceiptTemplate": zod.string(),
   "currency": zod.string()
 })
 
@@ -461,6 +464,7 @@ export const ExportBackupResponse = zod.object({
   "organizationName": zod.string(),
   "monthlyDueAmount": zod.number(),
   "whatsappAlertTemplate": zod.string(),
+  "whatsappReceiptTemplate": zod.string(),
   "currency": zod.string()
 })
 })

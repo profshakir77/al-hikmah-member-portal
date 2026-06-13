@@ -155,6 +155,7 @@ export interface Settings {
   organizationName: string;
   monthlyDueAmount: number;
   whatsappAlertTemplate: string;
+  whatsappReceiptTemplate: string;
   currency: string;
 }
 
@@ -162,6 +163,7 @@ export interface SettingsUpdate {
   organizationName?: string;
   monthlyDueAmount?: number;
   whatsappAlertTemplate?: string;
+  whatsappReceiptTemplate?: string;
   currency?: string;
 }
 

@@ -27,20 +27,35 @@ import { useAutoBackup } from "@/hooks/use-auto-backup";
 
 type Step = "menu" | "custom" | "date";
 
+function buildReceiptUrl(settings: { whatsappReceiptTemplate: string; currency: string }, phone: string, name: string, amount: number, month: number, year: number) {
+  const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
+  const text = settings.whatsappReceiptTemplate
+    .replace("{name}", name)
+    .replace("{amount}", amount.toString())
+    .replace("{currency}", settings.currency)
+    .replace("{month}", monthName)
+    .replace("{year}", year.toString());
+  return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
+}
+
 function PaymentPicker({
   memberId,
   memberName,
+  memberPhone,
   standardAmount,
   month,
   year,
+  settings,
   onPay,
   isPending,
 }: {
   memberId: number;
   memberName: string;
+  memberPhone: string;
   standardAmount: number;
   month: number;
   year: number;
+  settings: { whatsappReceiptTemplate: string; currency: string } | undefined;
   onPay: (memberId: number, amount: number, paidAt: Date) => void;
   isPending: boolean;
 }) {
@@ -62,6 +77,11 @@ function PaymentPicker({
 
   const handleConfirm = () => {
     if (pendingAmount == null) return;
+    // Open WhatsApp synchronously (inside user gesture) before any async work
+    if (settings && memberPhone) {
+      const url = buildReceiptUrl(settings, memberPhone, memberName, pendingAmount, month, year);
+      window.open(url, "_blank");
+    }
     onPay(memberId, pendingAmount, date);
     setOpen(false);
     reset();
@@ -290,7 +310,7 @@ export default function Payments() {
                             </Button>
                           ) : (
                             <>
-                              <PaymentPicker memberId={s.memberId} memberName={s.name} standardAmount={standardAmount} month={month} year={year} onPay={handlePay} isPending={createPayment.isPending} />
+                              <PaymentPicker memberId={s.memberId} memberName={s.name} memberPhone={s.phone} standardAmount={standardAmount} month={month} year={year} settings={settings ?? undefined} onPay={handlePay} isPending={createPayment.isPending} />
                               <WhatsAppButton phone={s.phone} name={s.name} month={month} year={year} amount={settings?.monthlyDueAmount} />
                             </>
                           )}

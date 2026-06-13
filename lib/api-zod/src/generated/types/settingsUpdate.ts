@@ -10,5 +10,6 @@ export interface SettingsUpdate {
   organizationName?: string;
   monthlyDueAmount?: number;
   whatsappAlertTemplate?: string;
+  whatsappReceiptTemplate?: string;
   currency?: string;
 }

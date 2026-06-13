@@ -62,12 +62,12 @@ export default function Users() {
   const handleSubmit = () => {
     if (!form.name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
     if (editId != null) {
-      const data: { name?: string; role?: string; password?: string } = { name: form.name, role: form.role };
+      const data: { name?: string; role?: "admin" | "viewer"; password?: string } = { name: form.name, role: form.role as "admin" | "viewer" };
       if (form.password.trim()) data.password = form.password;
       updateUser.mutate({ id: editId, data });
     } else {
       if (!form.username.trim() || !form.password.trim()) { toast({ title: "Username and password required", variant: "destructive" }); return; }
-      createUser.mutate({ data: { username: form.username, name: form.name, role: form.role, password: form.password } });
+      createUser.mutate({ data: { username: form.username, name: form.name, role: form.role as "admin" | "viewer", password: form.password } });
     }
   };
 

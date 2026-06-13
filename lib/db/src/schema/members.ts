@@ -51,6 +51,9 @@ export const settingsTable = pgTable("settings", {
   whatsappAlertTemplate: text("whatsapp_alert_template").notNull().default(
     "Dear {name}, your monthly contribution of {amount} {currency} for {month}/{year} is outstanding. Please pay at your earliest convenience. Thank you."
   ),
+  whatsappReceiptTemplate: text("whatsapp_receipt_template").notNull().default(
+    "Dear {name}, we have received your payment of {amount} {currency} for {month} {year}. JazakAllah Khair! - Al-Hikmah Community Center"
+  ),
   currency: text("currency").notNull().default("EUR"),
 });
 

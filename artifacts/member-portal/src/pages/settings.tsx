@@ -16,14 +16,16 @@ export default function Settings() {
   const [orgName, setOrgName] = useState("");
   const [dueAmount, setDueAmount] = useState("");
   const [currency, setCurrency] = useState("EUR");
-  const [template, setTemplate] = useState("");
+  const [alertTemplate, setAlertTemplate] = useState("");
+  const [receiptTemplate, setReceiptTemplate] = useState("");
 
   useEffect(() => {
     if (settings) {
       setOrgName(settings.organizationName);
       setDueAmount(String(settings.monthlyDueAmount));
       setCurrency(settings.currency);
-      setTemplate(settings.whatsappAlertTemplate);
+      setAlertTemplate(settings.whatsappAlertTemplate);
+      setReceiptTemplate(settings.whatsappReceiptTemplate);
     }
   }, [settings]);
 
@@ -48,16 +50,29 @@ export default function Settings() {
         organizationName: orgName.trim(),
         monthlyDueAmount: amount,
         currency: currency.trim() || "EUR",
-        whatsappAlertTemplate: template.trim(),
+        whatsappAlertTemplate: alertTemplate.trim(),
+        whatsappReceiptTemplate: receiptTemplate.trim(),
       },
     });
   };
 
-  if (isLoading) return <div className="p-8 text-muted-foreground">Loading settings...</div>;
+  const placeholders = (
+    <p className="text-xs text-muted-foreground">
+      Placeholders:{" "}
+      {["{name}", "{month}", "{year}", "{amount}", "{currency}"].map((p) => (
+        <code key={p} className="bg-muted px-1 rounded mr-1">{p}</code>
+      ))}
+    </p>
+  );
+
+  if (isLoading) return <div className="p-4 md:p-8 text-muted-foreground">Loading settings...</div>;
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+    <div className="p-4 md:p-8 space-y-5 md:space-y-6 page-enter">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground mt-0.5 text-sm">Configure your portal and WhatsApp messages</p>
+      </div>
 
       <Card className="max-w-2xl">
         <CardHeader>
@@ -83,24 +98,36 @@ export default function Settings() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="template">WhatsApp Alert Template</Label>
+            <Label htmlFor="alertTemplate">
+              WhatsApp Alert Template
+              <span className="ml-2 text-xs font-normal text-muted-foreground">(sent manually for unpaid members)</span>
+            </Label>
             <Textarea
-              id="template"
-              value={template}
-              onChange={(e) => setTemplate(e.target.value)}
-              rows={4}
+              id="alertTemplate"
+              value={alertTemplate}
+              onChange={(e) => setAlertTemplate(e.target.value)}
+              rows={3}
               className="font-mono text-sm"
             />
-            <p className="text-xs text-muted-foreground">
-              Placeholders: <code className="bg-muted px-1 rounded">{"{name}"}</code>{" "}
-              <code className="bg-muted px-1 rounded">{"{month}"}</code>{" "}
-              <code className="bg-muted px-1 rounded">{"{year}"}</code>{" "}
-              <code className="bg-muted px-1 rounded">{"{amount}"}</code>{" "}
-              <code className="bg-muted px-1 rounded">{"{currency}"}</code>
-            </p>
+            {placeholders}
           </div>
 
-          <Button onClick={handleSave} disabled={updateSettings.isPending}>
+          <div className="space-y-1.5">
+            <Label htmlFor="receiptTemplate">
+              WhatsApp Receipt Template
+              <span className="ml-2 text-xs font-normal text-green-600 font-medium">auto-sent on "Mark Paid"</span>
+            </Label>
+            <Textarea
+              id="receiptTemplate"
+              value={receiptTemplate}
+              onChange={(e) => setReceiptTemplate(e.target.value)}
+              rows={3}
+              className="font-mono text-sm border-green-200 focus-visible:ring-green-400"
+            />
+            {placeholders}
+          </div>
+
+          <Button onClick={handleSave} disabled={updateSettings.isPending} className="btn-ripple">
             {updateSettings.isPending ? "Saving..." : "Save Settings"}
           </Button>
         </CardContent>
