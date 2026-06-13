@@ -15,11 +15,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WhatsAppButton } from "@/components/whatsapp-button";
-import { CheckCircle, XCircle, Trash2, CreditCard, ChevronDown, Zap, PenLine } from "lucide-react";
+import {
+  CheckCircle, XCircle, Trash2, CreditCard,
+  ChevronDown, Zap, PenLine, CalendarDays,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoBackup } from "@/hooks/use-auto-backup";
+
+type Step = "menu" | "custom" | "date";
 
 function PaymentPicker({
   memberId,
@@ -35,31 +41,39 @@ function PaymentPicker({
   standardAmount: number;
   month: number;
   year: number;
-  onPay: (memberId: number, amount: number) => void;
+  onPay: (memberId: number, amount: number, paidAt: Date) => void;
   isPending: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<Step>("menu");
+  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
-  const [showCustom, setShowCustom] = useState(false);
+  const [date, setDate] = useState<Date>(new Date());
 
-  const handleStandard = () => {
-    onPay(memberId, standardAmount);
-    setOpen(false);
-    setShowCustom(false);
-    setCustom("");
-  };
+  const reset = () => { setStep("menu"); setPendingAmount(null); setCustom(""); setDate(new Date()); };
 
-  const handleCustomSubmit = () => {
+  const handleClose = (o: boolean) => { setOpen(o); if (!o) reset(); };
+
+  // After choosing an amount, go to date picker
+  const pickDate = (amount: number) => { setPendingAmount(amount); setDate(new Date()); setStep("date"); };
+
+  const handleCustomNext = () => {
     const val = parseFloat(custom);
     if (!val || val <= 0) return;
-    onPay(memberId, val);
-    setOpen(false);
-    setShowCustom(false);
-    setCustom("");
+    pickDate(val);
   };
 
+  const handleConfirm = () => {
+    if (pendingAmount == null) return;
+    onPay(memberId, pendingAmount, date);
+    setOpen(false);
+    reset();
+  };
+
+  const formattedDate = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
   return (
-    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setShowCustom(false); setCustom(""); } }}>
+    <Popover open={open} onOpenChange={handleClose}>
       <PopoverTrigger asChild>
         <Button
           size="sm"
@@ -70,49 +84,50 @@ function PaymentPicker({
           Mark Paid <ChevronDown className="w-3 h-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-2" align="end">
-        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 pb-1.5 border-b mb-1.5">
-          {memberName}
+
+      <PopoverContent className="w-64 p-2" align="end">
+        {/* Header */}
+        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 pb-1.5 border-b mb-1.5 flex items-center justify-between">
+          <span>{memberName}</span>
+          {step !== "menu" && (
+            <button className="text-muted-foreground hover:text-foreground text-[10px]" onClick={() => setStep("menu")}>
+              ← Back
+            </button>
+          )}
         </div>
 
-        {!showCustom ? (
+        {/* Step 1 – pick amount */}
+        {step === "menu" && (
           <div className="space-y-1">
-            {/* Standard amount */}
             <button
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm hover:bg-green-50 hover:text-green-700 transition-colors group"
-              onClick={handleStandard}
+              onClick={() => pickDate(standardAmount)}
             >
               <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                 <Zap className="w-3 h-3 text-green-600" />
               </div>
               <div className="text-left">
                 <div className="font-medium">Standard due</div>
-                <div className="text-xs text-muted-foreground group-hover:text-green-600">
-                  {formatCurrency(standardAmount)} / month
-                </div>
+                <div className="text-xs text-muted-foreground group-hover:text-green-600">{formatCurrency(standardAmount)}</div>
               </div>
             </button>
 
-            {/* Half amount */}
             <button
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors group"
-              onClick={() => { onPay(memberId, standardAmount / 2); setOpen(false); }}
+              onClick={() => pickDate(standardAmount / 2)}
             >
               <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                 <CreditCard className="w-3 h-3 text-blue-600" />
               </div>
               <div className="text-left">
                 <div className="font-medium">Half payment</div>
-                <div className="text-xs text-muted-foreground group-hover:text-blue-600">
-                  {formatCurrency(standardAmount / 2)}
-                </div>
+                <div className="text-xs text-muted-foreground group-hover:text-blue-600">{formatCurrency(standardAmount / 2)}</div>
               </div>
             </button>
 
-            {/* Custom */}
             <button
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm hover:bg-slate-100 transition-colors"
-              onClick={() => setShowCustom(true)}
+              onClick={() => setStep("custom")}
             >
               <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                 <PenLine className="w-3 h-3 text-slate-500" />
@@ -123,9 +138,12 @@ function PaymentPicker({
               </div>
             </button>
           </div>
-        ) : (
-          <div className="space-y-2 pt-1">
-            <div className="text-xs text-muted-foreground px-1">Enter custom amount (€)</div>
+        )}
+
+        {/* Step 2 – custom amount input */}
+        {step === "custom" && (
+          <div className="space-y-3 pt-1 px-1">
+            <div className="text-xs text-muted-foreground">Enter payment amount (€)</div>
             <div className="flex gap-2">
               <Input
                 type="number"
@@ -134,20 +152,40 @@ function PaymentPicker({
                 placeholder="0.00"
                 value={custom}
                 onChange={(e) => setCustom(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
+                onKeyDown={(e) => e.key === "Enter" && handleCustomNext()}
                 className="h-8 text-sm"
                 autoFocus
               />
-              <Button size="sm" className="h-8 px-3 shrink-0" onClick={handleCustomSubmit} disabled={!custom || Number(custom) <= 0}>
-                OK
+              <Button size="sm" className="h-8 px-3 shrink-0" onClick={handleCustomNext} disabled={!custom || Number(custom) <= 0}>
+                Next
               </Button>
             </div>
-            <button
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
-              onClick={() => { setShowCustom(false); setCustom(""); }}
-            >
-              ← Back
-            </button>
+          </div>
+        )}
+
+        {/* Step 3 – date picker */}
+        {step === "date" && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 px-1 py-1 text-xs text-muted-foreground">
+              <CalendarDays className="w-3.5 h-3.5" />
+              Payment date for <strong>{formatCurrency(pendingAmount ?? 0)}</strong>
+            </div>
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => d && setDate(d)}
+              disabled={(d) => d > new Date()}
+              className="rounded-md border-0 p-0 scale-90 origin-top"
+            />
+            <div className="px-1 pb-1 space-y-2">
+              <div className="flex items-center gap-2 text-xs bg-blue-50 border border-blue-100 rounded px-2 py-1.5 text-blue-700">
+                <CalendarDays className="w-3 h-3 shrink-0" />
+                Selected: <span className="font-medium">{formattedDate}</span>
+              </div>
+              <Button className="w-full h-8 text-sm btn-ripple" onClick={handleConfirm}>
+                Confirm Payment
+              </Button>
+            </div>
           </div>
         )}
       </PopoverContent>
@@ -165,7 +203,6 @@ export default function Payments() {
   const { save: autoSave } = useAutoBackup();
 
   const { data: statuses, isLoading } = useGetPaymentStatus({ month, year });
-
   const standardAmount = Number(settings?.monthlyDueAmount ?? 10);
 
   const invalidate = () => {
@@ -197,8 +234,8 @@ export default function Payments() {
     },
   });
 
-  const handlePay = (memberId: number, amount: number) => {
-    createPayment.mutate({ data: { memberId, amount, month, year } });
+  const handlePay = (memberId: number, amount: number, paidAt: Date) => {
+    createPayment.mutate({ data: { memberId, amount, month, year, paidAt: paidAt.toISOString() } });
   };
 
   const paid = statuses?.filter((s) => s.paid) ?? [];

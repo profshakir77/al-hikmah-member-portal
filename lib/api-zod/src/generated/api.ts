@@ -144,7 +144,8 @@ export const CreatePaymentBody = zod.object({
   "amount": zod.number(),
   "month": zod.number(),
   "year": zod.number(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "paidAt": zod.string().optional().describe('ISO date string for the payment date (defaults to today)')
 })
 
 

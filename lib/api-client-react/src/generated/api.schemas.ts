@@ -84,6 +84,8 @@ export interface PaymentInput {
   month: number;
   year: number;
   notes?: string;
+  /** ISO date string for the payment date (defaults to today) */
+  paidAt?: string;
 }
 
 export interface MemberPaymentStatus {

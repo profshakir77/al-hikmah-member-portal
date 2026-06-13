@@ -115,7 +115,7 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
   }
 
-  const { memberId, amount, month, year, notes } = parsed.data;
+  const { memberId, amount, month, year, notes, paidAt } = parsed.data;
 
   const [member] = await db
     .select()
@@ -145,6 +145,7 @@ router.post("/", async (req, res) => {
       month,
       year,
       notes: notes ?? null,
+      ...(paidAt ? { paidAt: new Date(paidAt) } : {}),
     })
     .returning();
 
