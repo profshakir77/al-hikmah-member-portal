@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UserPlus } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAutoBackup } from "@/hooks/use-auto-backup";
 
 type FormData = {
   name: string;
@@ -24,6 +25,7 @@ export default function MemberNew() {
   const [, setLocation] = useLocation();
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { save: autoSave } = useAutoBackup();
 
   const {
     register,
@@ -37,6 +39,7 @@ export default function MemberNew() {
     mutation: {
       onSuccess: (member) => {
         qc.invalidateQueries({ queryKey: getListMembersQueryKey() });
+        autoSave(`Member added: ${member.registrationNumber}`);
         toast({ title: `Member added — ${member.registrationNumber}` });
         setLocation("/members");
       },
@@ -58,7 +61,7 @@ export default function MemberNew() {
   };
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 space-y-6 page-enter">
       <div className="flex items-center gap-3">
         <Link href="/members">
           <Button variant="ghost" size="sm" className="gap-2"><ArrowLeft className="w-4 h-4" /> Back</Button>
@@ -66,21 +69,26 @@ export default function MemberNew() {
         <h1 className="text-3xl font-bold tracking-tight">Add Member</h1>
       </div>
 
-      <Card className="max-w-2xl">
+      <Card className="max-w-2xl hover:shadow-lg transition-shadow duration-200">
         <CardHeader>
-          <CardTitle>Member Details</CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <UserPlus className="w-5 h-5 text-blue-600" />
+            </div>
+            <CardTitle>Member Details</CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="name">Full Name *</Label>
-                <Input id="name" {...register("name", { required: "Name is required" })} />
+                <Input id="name" {...register("name", { required: "Name is required" })} className="focus:ring-2 focus:ring-primary/20 transition-shadow" />
                 {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone *</Label>
-                <Input id="phone" {...register("phone", { required: "Phone is required" })} placeholder="+39..." />
+                <Input id="phone" {...register("phone", { required: "Phone is required" })} placeholder="+39..." className="focus:ring-2 focus:ring-primary/20 transition-shadow" />
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
               </div>
             </div>
@@ -88,17 +96,17 @@ export default function MemberNew() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" {...register("email")} />
+                <Input id="email" type="email" {...register("email")} className="focus:ring-2 focus:ring-primary/20 transition-shadow" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="joinDate">Join Date</Label>
-                <Input id="joinDate" type="date" {...register("joinDate")} />
+                <Input id="joinDate" type="date" {...register("joinDate")} className="focus:ring-2 focus:ring-primary/20 transition-shadow" />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="address">Address</Label>
-              <Input id="address" {...register("address")} placeholder="Street, City" />
+              <Input id="address" {...register("address")} placeholder="Street, City" className="focus:ring-2 focus:ring-primary/20 transition-shadow" />
             </div>
 
             <div className="space-y-1.5">
@@ -106,8 +114,9 @@ export default function MemberNew() {
               <Textarea id="notes" {...register("notes")} rows={3} placeholder="Any additional notes" />
             </div>
 
-            <div className="flex gap-3">
-              <Button type="submit" disabled={createMember.isPending}>
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" disabled={createMember.isPending} className="gap-2 btn-ripple">
+                <UserPlus className="w-4 h-4" />
                 {createMember.isPending ? "Adding..." : "Add Member"}
               </Button>
               <Link href="/members">

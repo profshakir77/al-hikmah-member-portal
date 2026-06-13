@@ -15,8 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WhatsAppButton } from "@/components/whatsapp-button";
-import { CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAutoBackup } from "@/hooks/use-auto-backup";
 
 export default function Payments() {
   const { month: curMonth, year: curYear } = useCurrentDate();
@@ -25,14 +26,20 @@ export default function Payments() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { data: settings } = useGetSettings();
+  const { save: autoSave } = useAutoBackup();
 
   const { data: statuses, isLoading } = useGetPaymentStatus({ month, year });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: getGetPaymentStatusQueryKey({ month, year }) });
+    qc.invalidateQueries({ queryKey: getListPaymentsQueryKey() });
+  };
 
   const createPayment = useCreatePayment({
     mutation: {
       onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getGetPaymentStatusQueryKey({ month, year }) });
-        qc.invalidateQueries({ queryKey: getListPaymentsQueryKey() });
+        invalidate();
+        autoSave(`Payment recorded — ${monthLabel(month)} ${year}`);
         toast({ title: "Payment recorded" });
       },
       onError: (e: unknown) => {
@@ -45,8 +52,8 @@ export default function Payments() {
   const deletePayment = useDeletePayment({
     mutation: {
       onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getGetPaymentStatusQueryKey({ month, year }) });
-        qc.invalidateQueries({ queryKey: getListPaymentsQueryKey() });
+        invalidate();
+        autoSave(`Payment removed — ${monthLabel(month)} ${year}`);
         toast({ title: "Payment removed" });
       },
     },
@@ -54,12 +61,7 @@ export default function Payments() {
 
   const handleMarkPaid = (memberId: number) => {
     createPayment.mutate({
-      data: {
-        memberId,
-        amount: settings?.monthlyDueAmount ?? 10,
-        month,
-        year,
-      },
+      data: { memberId, amount: settings?.monthlyDueAmount ?? 10, month, year },
     });
   };
 
@@ -67,7 +69,7 @@ export default function Payments() {
   const unpaid = statuses?.filter((s) => !s.paid) ?? [];
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 space-y-6 page-enter">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
@@ -75,53 +77,46 @@ export default function Payments() {
         </div>
         <div className="flex gap-3">
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {MONTHS.map((m) => (
-                <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>
-              ))}
+              {MONTHS.map((m) => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {generateYearOptions().map((y) => (
-                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-              ))}
+              {generateYearOptions().map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">{paid.length}</div>
-            <div className="text-sm text-muted-foreground">Paid</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-destructive">{unpaid.length}</div>
-            <div className="text-sm text-muted-foreground">Unpaid</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{formatCurrency(paid.reduce((s, p) => s + (p.amount ?? 0), 0))}</div>
-            <div className="text-sm text-muted-foreground">Collected</div>
-          </CardContent>
-        </Card>
+        {[
+          { label: "Paid", value: paid.length, color: "text-green-600", bg: "bg-green-50" },
+          { label: "Unpaid", value: unpaid.length, color: "text-red-600", bg: "bg-red-50" },
+          { label: "Collected", value: formatCurrency(paid.reduce((s, p) => s + (p.amount ?? 0), 0)), color: "text-slate-800", bg: "bg-slate-50" },
+        ].map((s) => (
+          <Card key={s.label} className="stat-card hover:border-primary/20">
+            <CardContent className="pt-5 pb-4 flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center`}>
+                <CreditCard className={`w-4 h-4 ${s.color}`} />
+              </div>
+              <div>
+                <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading payments...</div>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-14 rounded-xl bg-muted/50 animate-pulse" />)}
+        </div>
       ) : (
-        <Card>
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader>
             <CardTitle>Member Payment Status — {monthLabel(month)} {year}</CardTitle>
           </CardHeader>
@@ -140,17 +135,17 @@ export default function Payments() {
               </TableHeader>
               <TableBody>
                 {statuses?.map((s) => (
-                  <TableRow key={s.memberId}>
-                    <TableCell className="font-mono text-sm">{s.registrationNumber}</TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableRow key={s.memberId} className="table-row-hover">
+                    <TableCell className="font-mono text-sm font-medium text-primary">{s.registrationNumber}</TableCell>
+                    <TableCell className="font-semibold">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">{s.phone}</TableCell>
                     <TableCell>
                       {s.paid ? (
-                        <Badge className="bg-green-100 text-green-700 border-green-200">
+                        <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
                           <CheckCircle className="w-3 h-3 mr-1" /> Paid
                         </Badge>
                       ) : (
-                        <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">
+                        <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
                           <XCircle className="w-3 h-3 mr-1" /> Unpaid
                         </Badge>
                       )}
@@ -163,9 +158,8 @@ export default function Payments() {
                       <div className="flex items-center justify-end gap-2">
                         {s.paid ? (
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
+                            variant="ghost" size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-red-50 transition-colors"
                             onClick={() => s.paymentId && deletePayment.mutate({ id: s.paymentId })}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -173,10 +167,10 @@ export default function Payments() {
                         ) : (
                           <>
                             <Button
-                              size="sm"
-                              variant="outline"
+                              size="sm" variant="outline"
                               onClick={() => handleMarkPaid(s.memberId)}
                               disabled={createPayment.isPending}
+                              className="hover:bg-green-50 hover:border-green-400 hover:text-green-700 transition-colors"
                             >
                               Mark Paid
                             </Button>
