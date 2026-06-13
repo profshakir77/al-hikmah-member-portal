@@ -32,6 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/expenses", label: "Expenses", icon: Receipt },
     { href: "/reports", label: "Reports", icon: FileBarChart },
     { href: "/tax", label: "Tax Report", icon: FileText },
+    { href: "/member-report", label: "Member Report", icon: FileBarChart },
     { href: "/users", label: "Users", icon: UserCog },
     { href: "/backup", label: "Backup", icon: Download },
     { href: "/settings", label: "Settings", icon: Settings },

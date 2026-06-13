@@ -28,6 +28,7 @@ import type {
   ExpenseUpdate,
   GetDashboardStatsParams,
   GetExpenseSummaryParams,
+  GetMembersReportParams,
   GetMonthlyReportParams,
   GetPaymentStatusParams,
   GetTaxAnnualReportParams,
@@ -41,6 +42,7 @@ import type {
   MemberInput,
   MemberPaymentStatus,
   MemberUpdate,
+  MembersReport,
   MonthlyReport,
   Payment,
   PaymentInput,
@@ -1142,6 +1144,84 @@ export function useGetTaxAnnualReport<TData = Awaited<ReturnType<typeof getTaxAn
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTaxAnnualReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMembersReportUrl = (params: GetMembersReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reports/members?${stringifiedParams}` : `/api/reports/members`
+}
+
+export const getMembersReport = async (params: GetMembersReportParams, options?: RequestInit): Promise<MembersReport> => {
+
+  return customFetch<MembersReport>(getGetMembersReportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMembersReportQueryKey = (params?: GetMembersReportParams,) => {
+    return [
+    `/api/reports/members`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMembersReportQueryOptions = <TData = Awaited<ReturnType<typeof getMembersReport>>, TError = ErrorType<unknown>>(params: GetMembersReportParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMembersReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMembersReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMembersReport>>> = ({ signal }) => getMembersReport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMembersReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMembersReportQueryResult = NonNullable<Awaited<ReturnType<typeof getMembersReport>>>
+export type GetMembersReportQueryError = ErrorType<unknown>
+
+
+
+export function useGetMembersReport<TData = Awaited<ReturnType<typeof getMembersReport>>, TError = ErrorType<unknown>>(
+ params: GetMembersReportParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMembersReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMembersReportQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

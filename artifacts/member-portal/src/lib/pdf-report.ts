@@ -361,6 +361,139 @@ export function generateTaxPdf(opts: {
   doc.save(`tax-report-${year}.pdf`);
 }
 
+// ── Members Report PDF ────────────────────────────────────────────────────────
+interface MembersReportPdfOptions {
+  orgName: string;
+  year: number;
+  totalMembers: number;
+  activeMembers: number;
+  totalCollected: number;
+  collectionRate: number;
+  members: {
+    registrationNumber: string;
+    name: string;
+    phone: string;
+    status: string;
+    monthlyPayments: { month: number; paid: boolean; amount: number }[];
+    totalPaidMonths: number;
+    totalAmount: number;
+  }[];
+}
+
+const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+export function generateMembersReportPdf(opts: MembersReportPdfOptions) {
+  const { orgName, year, totalMembers, activeMembers, totalCollected, collectionRate, members } = opts;
+  const ts = printedAt();
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth(); // 297
+
+  // Header banner (landscape)
+  doc.setFillColor(26, 42, 84);
+  doc.rect(0, 0, pageW, 30, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(orgName, 14, 12);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Member Payment Report", 14, 20);
+  doc.setFontSize(9);
+  doc.text(`Year: ${year}`, pageW - 14, 20, { align: "right" });
+
+  // Timestamp bar
+  doc.setFillColor(240, 243, 255);
+  doc.rect(0, 30, pageW, 8, "F");
+  doc.setTextColor(80, 90, 120);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.text(`Generated: ${ts}`, 14, 35.5);
+
+  // Summary row
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(9);
+  const summaryY = 46;
+  const items = [
+    { label: "Total Members", value: String(totalMembers) },
+    { label: "Active Members", value: String(activeMembers) },
+    { label: "Total Collected", value: `€${totalCollected.toFixed(2)}` },
+    { label: "Collection Rate", value: `${collectionRate}%` },
+  ];
+  items.forEach((item, i) => {
+    const x = 14 + i * 68;
+    doc.setFillColor(247, 249, 255);
+    doc.roundedRect(x, summaryY - 5, 62, 12, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(26, 42, 84);
+    doc.text(item.value, x + 31, summaryY + 1, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 110, 130);
+    doc.setFontSize(7);
+    doc.text(item.label, x + 31, summaryY + 5.5, { align: "center" });
+    doc.setFontSize(9);
+  });
+
+  // Table — each member row shows 12 month cells + summary
+  const head = [["#", "Reg No.", "Name", "Phone", "Status", ...SHORT_MONTHS, "Paid", "Total (€)"]];
+  const body = members.map((m, idx) => {
+    const monthCells = m.monthlyPayments.map((mp) =>
+      mp.paid ? `€${mp.amount.toFixed(0)}` : "-"
+    );
+    return [
+      String(idx + 1),
+      m.registrationNumber,
+      m.name,
+      m.phone,
+      m.status === "active" ? "Active" : "Inactive",
+      ...monthCells,
+      `${m.totalPaidMonths}/12`,
+      `€${m.totalAmount.toFixed(2)}`,
+    ];
+  });
+
+  autoTable(doc, {
+    startY: summaryY + 12,
+    head,
+    body,
+    theme: "grid",
+    headStyles: { fillColor: [26, 42, 84], textColor: 255, fontSize: 6.5, fontStyle: "bold", halign: "center" },
+    bodyStyles: { fontSize: 6.5, halign: "center" },
+    columnStyles: {
+      0: { cellWidth: 7 },
+      1: { cellWidth: 18 },
+      2: { cellWidth: 28, halign: "left" },
+      3: { cellWidth: 22, halign: "left" },
+      4: { cellWidth: 14 },
+      17: { cellWidth: 12 },
+      18: { cellWidth: 16 },
+    },
+    didParseCell: (data) => {
+      if (data.section === "body") {
+        const val = String(data.cell.raw);
+        if (val.startsWith("€") && data.column.index >= 5 && data.column.index <= 16) {
+          data.cell.styles.fillColor = [220, 252, 231];
+          data.cell.styles.textColor = [21, 128, 61];
+        } else if (val === "-" && data.column.index >= 5 && data.column.index <= 16) {
+          data.cell.styles.fillColor = [255, 241, 242];
+          data.cell.styles.textColor = [185, 28, 28];
+        }
+        if (data.column.index === 4) {
+          if (val === "Inactive") {
+            data.cell.styles.textColor = [185, 28, 28];
+          } else {
+            data.cell.styles.textColor = [21, 128, 61];
+          }
+        }
+      }
+    },
+    margin: { left: 5, right: 5 },
+  });
+
+  addFooter(doc, ts);
+  doc.save(`member-report-${year}.pdf`);
+}
+
 function addFooter(doc: jsPDF, ts: string) {
   const pageCount = doc.getNumberOfPages();
   const pageW = doc.internal.pageSize.getWidth();

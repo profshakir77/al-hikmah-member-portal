@@ -167,6 +167,36 @@ export interface SettingsUpdate {
   currency?: string;
 }
 
+export interface MemberPaymentMonth {
+  month: number;
+  paid: boolean;
+  amount: number;
+  /** @nullable */
+  paidDate?: string | null;
+}
+
+export interface MemberReportRow {
+  id: number;
+  registrationNumber: string;
+  name: string;
+  phone: string;
+  status: string;
+  joinDate: string;
+  monthlyPayments: MemberPaymentMonth[];
+  totalPaidMonths: number;
+  totalAmount: number;
+}
+
+export interface MembersReport {
+  year: number;
+  orgName: string;
+  totalMembers: number;
+  activeMembers: number;
+  totalCollected: number;
+  collectionRate: number;
+  members: MemberReportRow[];
+}
+
 export interface TaxQuarter {
   quarter: number;
   label: string;
@@ -342,6 +372,10 @@ year: number;
 };
 
 export type GetTaxAnnualReportParams = {
+year: number;
+};
+
+export type GetMembersReportParams = {
 year: number;
 };
 

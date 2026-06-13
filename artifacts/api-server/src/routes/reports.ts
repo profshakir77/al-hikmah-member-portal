@@ -294,4 +294,66 @@ router.get("/tax-annual", async (req, res) => {
   });
 });
 
+// Members payment report — full matrix for a given year
+router.get("/members", async (req, res) => {
+  const year = Number(req.query.year) || new Date().getFullYear();
+
+  const [settings, members, payments] = await Promise.all([
+    db.select().from(settingsTable).limit(1),
+    db.select().from(membersTable).orderBy(membersTable.registrationNumber),
+    db.select().from(paymentsTable).where(eq(paymentsTable.year, year)),
+  ]);
+
+  const orgName = settings[0]?.orgName ?? "Al-Hikmah Community Center";
+
+  // Index payments by memberId + month for O(1) lookup
+  const payMap = new Map<string, typeof payments[0]>();
+  for (const p of payments) {
+    payMap.set(`${p.memberId}:${p.month}`, p);
+  }
+
+  const totalCollected = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const activeMembers = members.filter((m) => m.status === "active").length;
+  // Max possible paid slots = active members * 12
+  const maxSlots = activeMembers * 12;
+  const totalPaidSlots = payments.length;
+  const collectionRate = maxSlots > 0 ? Math.round((totalPaidSlots / maxSlots) * 100) : 0;
+
+  const rows = members.map((m) => {
+    const monthlyPayments = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const p = payMap.get(`${m.id}:${month}`);
+      return {
+        month,
+        paid: !!p,
+        amount: p ? Number(p.amount) : 0,
+        paidDate: p ? p.paidDate ?? null : null,
+      };
+    });
+    const totalPaidMonths = monthlyPayments.filter((x) => x.paid).length;
+    const totalAmount = monthlyPayments.reduce((s, x) => s + x.amount, 0);
+    return {
+      id: m.id,
+      registrationNumber: m.registrationNumber,
+      name: m.name,
+      phone: m.phone,
+      status: m.status,
+      joinDate: m.joinDate,
+      monthlyPayments,
+      totalPaidMonths,
+      totalAmount,
+    };
+  });
+
+  return res.json({
+    year,
+    orgName,
+    totalMembers: members.length,
+    activeMembers,
+    totalCollected,
+    collectionRate,
+    members: rows,
+  });
+});
+
 export { router as reportsRouter };

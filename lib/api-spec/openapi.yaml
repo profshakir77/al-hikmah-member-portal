@@ -287,6 +287,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/TaxAnnualReport"
 
+  /reports/members:
+    get:
+      operationId: getMembersReport
+      tags: [reports]
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Members payment report for a given year
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembersReport"
+
   /reports/unpaid:
     get:
       operationId: getUnpaidMembers
@@ -672,6 +689,45 @@ components:
         whatsappAlertTemplate: { type: string }
         whatsappReceiptTemplate: { type: string }
         currency: { type: string }
+
+    MemberPaymentMonth:
+      type: object
+      required: [month, paid, amount]
+      properties:
+        month: { type: integer }
+        paid: { type: boolean }
+        amount: { type: number }
+        paidDate: { type: ["string", "null"] }
+
+    MemberReportRow:
+      type: object
+      required: [id, registrationNumber, name, phone, status, joinDate, monthlyPayments, totalPaidMonths, totalAmount]
+      properties:
+        id: { type: integer }
+        registrationNumber: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        status: { type: string }
+        joinDate: { type: string }
+        monthlyPayments:
+          type: array
+          items: { $ref: "#/components/schemas/MemberPaymentMonth" }
+        totalPaidMonths: { type: integer }
+        totalAmount: { type: number }
+
+    MembersReport:
+      type: object
+      required: [year, orgName, totalMembers, activeMembers, totalCollected, collectionRate, members]
+      properties:
+        year: { type: integer }
+        orgName: { type: string }
+        totalMembers: { type: integer }
+        activeMembers: { type: integer }
+        totalCollected: { type: number }
+        collectionRate: { type: number }
+        members:
+          type: array
+          items: { $ref: "#/components/schemas/MemberReportRow" }
 
     TaxQuarter:
       type: object
