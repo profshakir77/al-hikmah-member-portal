@@ -1,0 +1,1 @@
+export default function MemberNew() { return <div className="p-8">Add Member</div>; }
