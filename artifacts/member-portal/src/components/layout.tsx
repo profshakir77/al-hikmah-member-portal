@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Users, LayoutDashboard, CreditCard, FileBarChart, Settings,
-  Receipt, UserCog, Download, ChevronRight, Cloud, Menu, X,
+  Receipt, UserCog, Download, ChevronRight, Cloud, Menu, X, FileText,
 } from "lucide-react";
 import { getAutoBackups } from "@/hooks/use-auto-backup";
 
@@ -31,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/payments", label: "Payments", icon: CreditCard },
     { href: "/expenses", label: "Expenses", icon: Receipt },
     { href: "/reports", label: "Reports", icon: FileBarChart },
+    { href: "/tax", label: "Tax Report", icon: FileText },
     { href: "/users", label: "Users", icon: UserCog },
     { href: "/backup", label: "Backup", icon: Download },
     { href: "/settings", label: "Settings", icon: Settings },

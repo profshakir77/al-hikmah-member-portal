@@ -213,6 +213,154 @@ export function generateYearlyPdf(opts: {
   doc.save(`report-yearly-${opts.year}.pdf`);
 }
 
+export function generateTaxPdf(opts: {
+  report: {
+    orgName: string;
+    totalIncome: number;
+    totalExpenses: number;
+    grossSurplus: number;
+    activeMembers: number;
+    totalMembers: number;
+    quarters: { quarter: number; label: string; income: number; expenses: number; net: number }[];
+    incomeByMonth: { month: number; collected: number; paymentCount: number }[];
+    expensesByCategory: { category: string; total: number; count: number }[];
+  };
+  year: number;
+}) {
+  const { report, year } = opts;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const ts = printedAt();
+
+  drawHeader(doc, {
+    orgName: report.orgName,
+    title: "Annual Tax Report",
+    subtitle: `Tax Year ${year}`,
+    printedAt: ts,
+  });
+
+  let y = 46;
+
+  // Org info bar
+  const pageW = doc.internal.pageSize.getWidth();
+  doc.setFillColor(240, 243, 255);
+  doc.rect(14, y, pageW - 28, 10, "F");
+  doc.setFontSize(8);
+  doc.setTextColor(80, 90, 130);
+  doc.text(`${report.orgName}  |  Tax Year: ${year}  |  Active Members: ${report.activeMembers}  |  Total Members: ${report.totalMembers}`, pageW / 2, y + 6.5, { align: "center" });
+  y += 14;
+
+  // Summary
+  y = drawSectionTitle(doc, "Annual Financial Summary", y);
+  y = drawStatGrid(doc, [
+    { label: "Total Income", value: report.totalIncome.toLocaleString("de-DE", { style: "currency", currency: "EUR" }), highlight: true },
+    { label: "Total Expenditure", value: report.totalExpenses.toLocaleString("de-DE", { style: "currency", currency: "EUR" }) },
+    { label: report.grossSurplus >= 0 ? "Net Surplus" : "Net Deficit", value: Math.abs(report.grossSurplus).toLocaleString("de-DE", { style: "currency", currency: "EUR" }), highlight: report.grossSurplus >= 0 },
+  ], y);
+
+  // Quarterly table
+  y = drawSectionTitle(doc, "Quarterly Breakdown", y);
+  autoTable(doc, {
+    startY: y,
+    head: [["Quarter", "Income (€)", "Expenses (€)", "Net (€)"]],
+    body: report.quarters.map((q) => [
+      q.label,
+      q.income.toLocaleString("de-DE", { minimumFractionDigits: 2 }),
+      q.expenses.toLocaleString("de-DE", { minimumFractionDigits: 2 }),
+      q.net.toLocaleString("de-DE", { minimumFractionDigits: 2 }),
+    ]),
+    theme: "grid",
+    headStyles: { fillColor: [26, 42, 84], textColor: 255, fontSize: 8, fontStyle: "bold" },
+    bodyStyles: { fontSize: 8 },
+    alternateRowStyles: { fillColor: [248, 250, 255] },
+    didParseCell: (data) => {
+      if (data.section === "body" && data.column.index === 3) {
+        const net = report.quarters[data.row.index]?.net ?? 0;
+        data.cell.styles.textColor = net >= 0 ? [21, 128, 61] : [185, 28, 28];
+        data.cell.styles.fontStyle = "bold";
+      }
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  // Monthly income
+  y = drawSectionTitle(doc, "Monthly Income Breakdown", y);
+  const activeMonths = report.incomeByMonth.filter((m) => m.collected > 0);
+  autoTable(doc, {
+    startY: y,
+    head: [["Month", "Payment Count", "Amount Collected (€)"]],
+    body: [
+      ...report.incomeByMonth.map((m) => {
+        const mNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        return [mNames[m.month - 1] ?? String(m.month), m.paymentCount, m.collected.toLocaleString("de-DE", { minimumFractionDigits: 2 })];
+      }),
+      ["TOTAL", String(report.incomeByMonth.reduce((s, m) => s + m.paymentCount, 0)), report.totalIncome.toLocaleString("de-DE", { minimumFractionDigits: 2 })],
+    ],
+    theme: "grid",
+    headStyles: { fillColor: [26, 42, 84], textColor: 255, fontSize: 8, fontStyle: "bold" },
+    bodyStyles: { fontSize: 8 },
+    alternateRowStyles: { fillColor: [248, 250, 255] },
+    didParseCell: (data) => {
+      if (data.section === "body" && data.row.index === 12) {
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.fillColor = [220, 242, 228];
+      }
+      if (data.section === "body" && data.column.index === 2 && data.row.index < 12) {
+        const collected = report.incomeByMonth[data.row.index]?.collected ?? 0;
+        if (collected === 0) data.cell.styles.textColor = [180, 180, 180];
+        else data.cell.styles.textColor = [21, 128, 61];
+      }
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+
+  if (y > 230) { doc.addPage(); y = 20; }
+
+  // Expenses by category
+  y = drawSectionTitle(doc, "Expenditure by Category", y);
+  if (report.expensesByCategory.length === 0) {
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("No expenses recorded for this tax year.", 14, y + 4);
+    y += 10;
+  } else {
+    autoTable(doc, {
+      startY: y,
+      head: [["Category", "Count", "Amount (€)", "% of Total"]],
+      body: [
+        ...report.expensesByCategory.map((cat) => {
+          const pct = report.totalExpenses > 0 ? ((cat.total / report.totalExpenses) * 100).toFixed(1) + "%" : "0%";
+          return [cat.category, cat.count, cat.total.toLocaleString("de-DE", { minimumFractionDigits: 2 }), pct];
+        }),
+        ["TOTAL", String(report.expensesByCategory.reduce((s, c) => s + c.count, 0)), report.totalExpenses.toLocaleString("de-DE", { minimumFractionDigits: 2 }), "100%"],
+      ],
+      theme: "grid",
+      headStyles: { fillColor: [26, 42, 84], textColor: 255, fontSize: 8, fontStyle: "bold" },
+      bodyStyles: { fontSize: 8 },
+      alternateRowStyles: { fillColor: [255, 250, 245] },
+      didParseCell: (data) => {
+        const lastRow = report.expensesByCategory.length;
+        if (data.section === "body" && data.row.index === lastRow) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [255, 237, 213];
+        }
+        if (data.section === "body" && data.column.index === 2 && data.row.index < lastRow) {
+          data.cell.styles.textColor = [194, 65, 12];
+        }
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+  }
+
+  addFooter(doc, ts);
+  doc.save(`tax-report-${year}.pdf`);
+}
+
 function addFooter(doc: jsPDF, ts: string) {
   const pageCount = doc.getNumberOfPages();
   const pageW = doc.internal.pageSize.getWidth();

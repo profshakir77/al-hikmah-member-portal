@@ -12,6 +12,7 @@ import MemberDetail from "./pages/member-detail";
 import Payments from "./pages/payments";
 import Expenses from "./pages/expenses";
 import Reports from "./pages/reports";
+import Tax from "./pages/tax";
 import Users from "./pages/users";
 import Backup from "./pages/backup";
 import Settings from "./pages/settings";
@@ -29,6 +30,7 @@ function Router() {
         <Route path="/payments" component={Payments} />
         <Route path="/expenses" component={Expenses} />
         <Route path="/reports" component={Reports} />
+        <Route path="/tax" component={Tax} />
         <Route path="/users" component={Users} />
         <Route path="/backup" component={Backup} />
         <Route path="/settings" component={Settings} />

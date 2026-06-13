@@ -246,6 +246,38 @@ export const GetYearlyReportResponse = zod.object({
 })
 
 
+export const GetTaxAnnualReportQueryParams = zod.object({
+  "year": zod.coerce.number()
+})
+
+export const GetTaxAnnualReportResponse = zod.object({
+  "year": zod.number(),
+  "orgName": zod.string(),
+  "totalIncome": zod.number(),
+  "totalExpenses": zod.number(),
+  "grossSurplus": zod.number(),
+  "activeMembers": zod.number(),
+  "totalMembers": zod.number(),
+  "quarters": zod.array(zod.object({
+  "quarter": zod.number(),
+  "label": zod.string(),
+  "income": zod.number(),
+  "expenses": zod.number(),
+  "net": zod.number()
+})),
+  "incomeByMonth": zod.array(zod.object({
+  "month": zod.number(),
+  "collected": zod.number(),
+  "paymentCount": zod.number()
+})),
+  "expensesByCategory": zod.array(zod.object({
+  "category": zod.string(),
+  "total": zod.number(),
+  "count": zod.number()
+}))
+})
+
+
 export const GetUnpaidMembersQueryParams = zod.object({
   "month": zod.coerce.number(),
   "year": zod.coerce.number()

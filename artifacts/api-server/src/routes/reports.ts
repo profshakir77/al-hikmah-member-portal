@@ -216,4 +216,82 @@ router.get("/unpaid", async (req, res) => {
   return res.json(unpaid.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() })));
 });
 
+router.get("/tax-annual", async (req, res) => {
+  const year = Number(req.query.year);
+  if (!year || isNaN(year)) return res.status(400).json({ error: "year is required" });
+
+  const [{ activeMembers }] = await db
+    .select({ activeMembers: sql<number>`count(*)::int` })
+    .from(membersTable)
+    .where(eq(membersTable.status, "active"));
+
+  const [{ totalMembers }] = await db
+    .select({ totalMembers: sql<number>`count(*)::int` })
+    .from(membersTable);
+
+  const [settingsRow] = await db.select().from(settingsTable);
+  const orgName = settingsRow?.organizationName ?? "Community Organization";
+
+  const payments = await db
+    .select()
+    .from(paymentsTable)
+    .where(eq(paymentsTable.year, year));
+
+  const expenses = await db
+    .select()
+    .from(expensesTable)
+    .where(eq(expensesTable.year, year));
+
+  // Income by month
+  const incomeByMonth = Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1;
+    const monthPayments = payments.filter((p) => p.month === month);
+    return {
+      month,
+      collected: monthPayments.reduce((sum, p) => sum + Number(p.amount), 0),
+      paymentCount: monthPayments.length,
+    };
+  });
+
+  // Expenses by category
+  const categoryMap = new Map<string, { total: number; count: number }>();
+  for (const e of expenses) {
+    const cat = e.category;
+    const existing = categoryMap.get(cat) ?? { total: 0, count: 0 };
+    categoryMap.set(cat, { total: existing.total + Number(e.amount), count: existing.count + 1 });
+  }
+  const expensesByCategory = Array.from(categoryMap.entries())
+    .map(([category, { total, count }]) => ({ category, total, count }))
+    .sort((a, b) => b.total - a.total);
+
+  // Quarterly breakdown
+  const quarterMonths = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]];
+  const quarterLabels = ["Q1 (Jan-Mar)", "Q2 (Apr-Jun)", "Q3 (Jul-Sep)", "Q4 (Oct-Dec)"];
+  const quarters = quarterMonths.map((months, i) => {
+    const income = payments
+      .filter((p) => months.includes(p.month))
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+    const exp = expenses
+      .filter((e) => months.includes(e.month))
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    return { quarter: i + 1, label: quarterLabels[i]!, income, expenses: exp, net: income - exp };
+  });
+
+  const totalIncome = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+  return res.json({
+    year,
+    orgName,
+    totalIncome,
+    totalExpenses,
+    grossSurplus: totalIncome - totalExpenses,
+    activeMembers: activeMembers ?? 0,
+    totalMembers: totalMembers ?? 0,
+    quarters,
+    incomeByMonth,
+    expensesByCategory,
+  });
+});
+
 export { router as reportsRouter };

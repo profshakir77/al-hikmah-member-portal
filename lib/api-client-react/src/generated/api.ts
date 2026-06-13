@@ -30,6 +30,7 @@ import type {
   GetExpenseSummaryParams,
   GetMonthlyReportParams,
   GetPaymentStatusParams,
+  GetTaxAnnualReportParams,
   GetUnpaidMembersParams,
   GetYearlyReportParams,
   HealthStatus,
@@ -45,6 +46,7 @@ import type {
   PaymentInput,
   Settings,
   SettingsUpdate,
+  TaxAnnualReport,
   User,
   UserInput,
   UserUpdate,
@@ -1062,6 +1064,84 @@ export function useGetYearlyReport<TData = Awaited<ReturnType<typeof getYearlyRe
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetYearlyReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTaxAnnualReportUrl = (params: GetTaxAnnualReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reports/tax-annual?${stringifiedParams}` : `/api/reports/tax-annual`
+}
+
+export const getTaxAnnualReport = async (params: GetTaxAnnualReportParams, options?: RequestInit): Promise<TaxAnnualReport> => {
+
+  return customFetch<TaxAnnualReport>(getGetTaxAnnualReportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTaxAnnualReportQueryKey = (params?: GetTaxAnnualReportParams,) => {
+    return [
+    `/api/reports/tax-annual`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTaxAnnualReportQueryOptions = <TData = Awaited<ReturnType<typeof getTaxAnnualReport>>, TError = ErrorType<unknown>>(params: GetTaxAnnualReportParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTaxAnnualReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTaxAnnualReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaxAnnualReport>>> = ({ signal }) => getTaxAnnualReport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTaxAnnualReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTaxAnnualReportQueryResult = NonNullable<Awaited<ReturnType<typeof getTaxAnnualReport>>>
+export type GetTaxAnnualReportQueryError = ErrorType<unknown>
+
+
+
+export function useGetTaxAnnualReport<TData = Awaited<ReturnType<typeof getTaxAnnualReport>>, TError = ErrorType<unknown>>(
+ params: GetTaxAnnualReportParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTaxAnnualReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTaxAnnualReportQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

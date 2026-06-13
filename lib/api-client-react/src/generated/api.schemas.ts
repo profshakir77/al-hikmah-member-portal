@@ -167,6 +167,39 @@ export interface SettingsUpdate {
   currency?: string;
 }
 
+export interface TaxQuarter {
+  quarter: number;
+  label: string;
+  income: number;
+  expenses: number;
+  net: number;
+}
+
+export interface TaxIncomeMonth {
+  month: number;
+  collected: number;
+  paymentCount: number;
+}
+
+export interface TaxExpenseCategory {
+  category: string;
+  total: number;
+  count: number;
+}
+
+export interface TaxAnnualReport {
+  year: number;
+  orgName: string;
+  totalIncome: number;
+  totalExpenses: number;
+  grossSurplus: number;
+  activeMembers: number;
+  totalMembers: number;
+  quarters: TaxQuarter[];
+  incomeByMonth: TaxIncomeMonth[];
+  expensesByCategory: TaxExpenseCategory[];
+}
+
 export interface Expense {
   id: number;
   title: string;
@@ -305,6 +338,10 @@ year: number;
 };
 
 export type GetYearlyReportParams = {
+year: number;
+};
+
+export type GetTaxAnnualReportParams = {
 year: number;
 };
 

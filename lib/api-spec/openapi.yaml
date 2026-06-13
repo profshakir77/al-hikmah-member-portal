@@ -270,6 +270,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/YearlyReport"
 
+  /reports/tax-annual:
+    get:
+      operationId: getTaxAnnualReport
+      tags: [reports]
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Tax annual report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxAnnualReport"
+
   /reports/unpaid:
     get:
       operationId: getUnpaidMembers
@@ -655,6 +672,53 @@ components:
         whatsappAlertTemplate: { type: string }
         whatsappReceiptTemplate: { type: string }
         currency: { type: string }
+
+    TaxQuarter:
+      type: object
+      required: [quarter, label, income, expenses, net]
+      properties:
+        quarter: { type: integer }
+        label: { type: string }
+        income: { type: number }
+        expenses: { type: number }
+        net: { type: number }
+
+    TaxIncomeMonth:
+      type: object
+      required: [month, collected, paymentCount]
+      properties:
+        month: { type: integer }
+        collected: { type: number }
+        paymentCount: { type: integer }
+
+    TaxExpenseCategory:
+      type: object
+      required: [category, total, count]
+      properties:
+        category: { type: string }
+        total: { type: number }
+        count: { type: integer }
+
+    TaxAnnualReport:
+      type: object
+      required: [year, orgName, totalIncome, totalExpenses, grossSurplus, activeMembers, totalMembers, quarters, incomeByMonth, expensesByCategory]
+      properties:
+        year: { type: integer }
+        orgName: { type: string }
+        totalIncome: { type: number }
+        totalExpenses: { type: number }
+        grossSurplus: { type: number }
+        activeMembers: { type: integer }
+        totalMembers: { type: integer }
+        quarters:
+          type: array
+          items: { $ref: "#/components/schemas/TaxQuarter" }
+        incomeByMonth:
+          type: array
+          items: { $ref: "#/components/schemas/TaxIncomeMonth" }
+        expensesByCategory:
+          type: array
+          items: { $ref: "#/components/schemas/TaxExpenseCategory" }
 
     Expense:
       type: object
