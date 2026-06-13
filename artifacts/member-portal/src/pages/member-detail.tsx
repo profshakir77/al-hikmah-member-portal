@@ -144,11 +144,11 @@ export default function MemberDetail() {
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
                   {[
                     ["Phone", member.phone],
-                    ["Email", member.email ?? "—"],
-                    ["Address", member.address ?? "—"],
+                    ["Email", member.email ?? "-"],
+                    ["Address", member.address ?? "-"],
                     ["Join Date", member.joinDate],
                     ["Member Since", new Date(member.createdAt).toLocaleDateString("en-GB")],
-                    ["Notes", member.notes ?? "—"],
+                    ["Notes", member.notes ?? "-"],
                   ].map(([label, value]) => (
                     <div key={label} className="space-y-0.5">
                       <dt className="text-muted-foreground text-xs uppercase tracking-wide font-medium">{label}</dt>

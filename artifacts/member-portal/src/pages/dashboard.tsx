@@ -87,7 +87,7 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 pulse-dot" />
-            Unpaid Members — {monthLabel(month)} {year}
+            Unpaid Members - {monthLabel(month)} {year}
           </CardTitle>
         </CardHeader>
         <CardContent>

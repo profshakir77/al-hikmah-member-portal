@@ -79,7 +79,7 @@ function MonthlyReport() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Member Breakdown — {monthLabel(month)} {year}</CardTitle>
+              <CardTitle>Member Breakdown - {monthLabel(month)} {year}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -108,9 +108,9 @@ function MonthlyReport() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell>{p.amount != null ? formatCurrency(p.amount) : "—"}</TableCell>
+                      <TableCell>{p.amount != null ? formatCurrency(p.amount) : "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {p.paidAt ? new Date(p.paidAt).toLocaleDateString("en-GB") : "—"}
+                        {p.paidAt ? new Date(p.paidAt).toLocaleDateString("en-GB") : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -164,7 +164,7 @@ function YearlyReport() {
           </div>
 
           <Card>
-            <CardHeader><CardTitle>Monthly Breakdown — {year}</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Monthly Breakdown - {year}</CardTitle></CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>

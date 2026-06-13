@@ -40,7 +40,7 @@ export default function MemberNew() {
       onSuccess: (member) => {
         qc.invalidateQueries({ queryKey: getListMembersQueryKey() });
         autoSave(`Member added: ${member.registrationNumber}`);
-        toast({ title: `Member added — ${member.registrationNumber}` });
+        toast({ title: `Member added - ${member.registrationNumber}` });
         setLocation("/members");
       },
       onError: () => toast({ title: "Error", description: "Could not add member", variant: "destructive" }),

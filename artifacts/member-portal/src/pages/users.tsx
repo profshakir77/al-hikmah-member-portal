@@ -170,8 +170,8 @@ export default function Users() {
               <Select value={form.role} onValueChange={(v) => setForm((f) => ({ ...f, role: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin — full access</SelectItem>
-                  <SelectItem value="viewer">Viewer — read only</SelectItem>
+                  <SelectItem value="admin">Admin - full access</SelectItem>
+                  <SelectItem value="viewer">Viewer - read only</SelectItem>
                 </SelectContent>
               </Select>
             </div>

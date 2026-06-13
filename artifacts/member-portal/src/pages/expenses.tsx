@@ -165,7 +165,7 @@ export default function Expenses() {
                     <TableCell><Badge className={`text-xs ${categoryStyle[e.category] ?? "bg-slate-100 text-slate-600"}`}>{e.category}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{monthLabel(e.month)} {e.year}</TableCell>
                     <TableCell className="font-medium">{formatCurrency(e.amount)}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{e.notes ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{e.notes ?? "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                         <Button variant="ghost" size="sm" onClick={() => openEdit(e)} className="hover:bg-blue-50 hover:text-blue-700"><Pencil className="w-4 h-4" /></Button>

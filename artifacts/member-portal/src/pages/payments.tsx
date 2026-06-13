@@ -39,7 +39,7 @@ export default function Payments() {
     mutation: {
       onSuccess: () => {
         invalidate();
-        autoSave(`Payment recorded — ${monthLabel(month)} ${year}`);
+        autoSave(`Payment recorded - ${monthLabel(month)} ${year}`);
         toast({ title: "Payment recorded" });
       },
       onError: (e: unknown) => {
@@ -53,7 +53,7 @@ export default function Payments() {
     mutation: {
       onSuccess: () => {
         invalidate();
-        autoSave(`Payment removed — ${monthLabel(month)} ${year}`);
+        autoSave(`Payment removed - ${monthLabel(month)} ${year}`);
         toast({ title: "Payment removed" });
       },
     },
@@ -118,7 +118,7 @@ export default function Payments() {
       ) : (
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader>
-            <CardTitle>Member Payment Status — {monthLabel(month)} {year}</CardTitle>
+            <CardTitle>Member Payment Status - {monthLabel(month)} {year}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -150,9 +150,9 @@ export default function Payments() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell>{s.amount != null ? formatCurrency(s.amount) : "—"}</TableCell>
+                    <TableCell>{s.amount != null ? formatCurrency(s.amount) : "-"}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {s.paidAt ? new Date(s.paidAt).toLocaleDateString("en-GB") : "—"}
+                      {s.paidAt ? new Date(s.paidAt).toLocaleDateString("en-GB") : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
