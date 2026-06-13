@@ -12,12 +12,148 @@ import { useCurrentDate, MONTHS, generateYearOptions, formatCurrency, monthLabel
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WhatsAppButton } from "@/components/whatsapp-button";
-import { CheckCircle, XCircle, Trash2, CreditCard } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, CreditCard, ChevronDown, Zap, PenLine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoBackup } from "@/hooks/use-auto-backup";
+
+function PaymentPicker({
+  memberId,
+  memberName,
+  standardAmount,
+  month,
+  year,
+  onPay,
+  isPending,
+}: {
+  memberId: number;
+  memberName: string;
+  standardAmount: number;
+  month: number;
+  year: number;
+  onPay: (memberId: number, amount: number) => void;
+  isPending: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [custom, setCustom] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
+
+  const handleStandard = () => {
+    onPay(memberId, standardAmount);
+    setOpen(false);
+    setShowCustom(false);
+    setCustom("");
+  };
+
+  const handleCustomSubmit = () => {
+    const val = parseFloat(custom);
+    if (!val || val <= 0) return;
+    onPay(memberId, val);
+    setOpen(false);
+    setShowCustom(false);
+    setCustom("");
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setShowCustom(false); setCustom(""); } }}>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isPending}
+          className="gap-1.5 hover:bg-green-50 hover:border-green-400 hover:text-green-700 transition-colors"
+        >
+          Mark Paid <ChevronDown className="w-3 h-3" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-2" align="end">
+        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 pb-1.5 border-b mb-1.5">
+          {memberName}
+        </div>
+
+        {!showCustom ? (
+          <div className="space-y-1">
+            {/* Standard amount */}
+            <button
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm hover:bg-green-50 hover:text-green-700 transition-colors group"
+              onClick={handleStandard}
+            >
+              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <Zap className="w-3 h-3 text-green-600" />
+              </div>
+              <div className="text-left">
+                <div className="font-medium">Standard due</div>
+                <div className="text-xs text-muted-foreground group-hover:text-green-600">
+                  {formatCurrency(standardAmount)} / month
+                </div>
+              </div>
+            </button>
+
+            {/* Half amount */}
+            <button
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors group"
+              onClick={() => { onPay(memberId, standardAmount / 2); setOpen(false); }}
+            >
+              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <CreditCard className="w-3 h-3 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <div className="font-medium">Half payment</div>
+                <div className="text-xs text-muted-foreground group-hover:text-blue-600">
+                  {formatCurrency(standardAmount / 2)}
+                </div>
+              </div>
+            </button>
+
+            {/* Custom */}
+            <button
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm hover:bg-slate-100 transition-colors"
+              onClick={() => setShowCustom(true)}
+            >
+              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <PenLine className="w-3 h-3 text-slate-500" />
+              </div>
+              <div className="text-left">
+                <div className="font-medium">Custom amount</div>
+                <div className="text-xs text-muted-foreground">Enter any amount</div>
+              </div>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2 pt-1">
+            <div className="text-xs text-muted-foreground px-1">Enter custom amount (€)</div>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                placeholder="0.00"
+                value={custom}
+                onChange={(e) => setCustom(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
+                className="h-8 text-sm"
+                autoFocus
+              />
+              <Button size="sm" className="h-8 px-3 shrink-0" onClick={handleCustomSubmit} disabled={!custom || Number(custom) <= 0}>
+                OK
+              </Button>
+            </div>
+            <button
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
+              onClick={() => { setShowCustom(false); setCustom(""); }}
+            >
+              ← Back
+            </button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function Payments() {
   const { month: curMonth, year: curYear } = useCurrentDate();
@@ -29,6 +165,8 @@ export default function Payments() {
   const { save: autoSave } = useAutoBackup();
 
   const { data: statuses, isLoading } = useGetPaymentStatus({ month, year });
+
+  const standardAmount = Number(settings?.monthlyDueAmount ?? 10);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: getGetPaymentStatusQueryKey({ month, year }) });
@@ -59,10 +197,8 @@ export default function Payments() {
     },
   });
 
-  const handleMarkPaid = (memberId: number) => {
-    createPayment.mutate({
-      data: { memberId, amount: settings?.monthlyDueAmount ?? 10, month, year },
-    });
+  const handlePay = (memberId: number, amount: number) => {
+    createPayment.mutate({ data: { memberId, amount, month, year } });
   };
 
   const paid = statuses?.filter((s) => s.paid) ?? [];
@@ -166,14 +302,15 @@ export default function Payments() {
                           </Button>
                         ) : (
                           <>
-                            <Button
-                              size="sm" variant="outline"
-                              onClick={() => handleMarkPaid(s.memberId)}
-                              disabled={createPayment.isPending}
-                              className="hover:bg-green-50 hover:border-green-400 hover:text-green-700 transition-colors"
-                            >
-                              Mark Paid
-                            </Button>
+                            <PaymentPicker
+                              memberId={s.memberId}
+                              memberName={s.name}
+                              standardAmount={standardAmount}
+                              month={month}
+                              year={year}
+                              onPay={handlePay}
+                              isPending={createPayment.isPending}
+                            />
                             <WhatsAppButton phone={s.phone} name={s.name} month={month} year={year} amount={settings?.monthlyDueAmount} />
                           </>
                         )}
