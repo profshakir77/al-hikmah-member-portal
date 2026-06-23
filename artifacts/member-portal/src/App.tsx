@@ -4,6 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import Login from "@/pages/login";
 import Layout from "./components/layout";
 import Dashboard from "./pages/dashboard";
 import Members from "./pages/members";
@@ -21,7 +23,13 @@ import Settings from "./pages/settings";
 
 const queryClient = new QueryClient();
 
-function Router() {
+function ProtectedRouter() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Login />;
+  }
+
   return (
     <Layout>
       <Switch>
@@ -49,7 +57,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <AuthProvider>
+            <ProtectedRouter />
+          </AuthProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
