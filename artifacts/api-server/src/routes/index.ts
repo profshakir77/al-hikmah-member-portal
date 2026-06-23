@@ -7,6 +7,7 @@ import { settingsRouter } from "./settings";
 import { expensesRouter } from "./expenses";
 import { usersRouter } from "./users";
 import { backupRouter } from "./backup";
+import { contributionsRouter } from "./contributions";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use("/settings", settingsRouter);
 router.use("/expenses", expensesRouter);
 router.use("/users", usersRouter);
 router.use("/backup", backupRouter);
+router.use("/contributions", contributionsRouter);
 
 export default router;

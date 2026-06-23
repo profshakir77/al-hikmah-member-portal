@@ -14,6 +14,7 @@ import Expenses from "./pages/expenses";
 import Reports from "./pages/reports";
 import Tax from "./pages/tax";
 import MemberReport from "./pages/member-report";
+import Contributions from "./pages/contributions";
 import Users from "./pages/users";
 import Backup from "./pages/backup";
 import Settings from "./pages/settings";
@@ -33,6 +34,7 @@ function Router() {
         <Route path="/reports" component={Reports} />
         <Route path="/tax" component={Tax} />
         <Route path="/member-report" component={MemberReport} />
+        <Route path="/contributions" component={Contributions} />
         <Route path="/users" component={Users} />
         <Route path="/backup" component={Backup} />
         <Route path="/settings" component={Settings} />

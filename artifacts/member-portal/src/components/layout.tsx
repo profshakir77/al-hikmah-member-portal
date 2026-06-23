@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Users, LayoutDashboard, CreditCard, FileBarChart, Settings,
-  Receipt, UserCog, Download, ChevronRight, Cloud, Menu, X, FileText,
+  Receipt, UserCog, Download, ChevronRight, Cloud, Menu, X, FileText, HandCoins,
 } from "lucide-react";
 import { getAutoBackups } from "@/hooks/use-auto-backup";
 
@@ -33,6 +33,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/reports", label: "Reports", icon: FileBarChart },
     { href: "/tax", label: "Tax Report", icon: FileText },
     { href: "/member-report", label: "Member Report", icon: FileBarChart },
+    { href: "/contributions", label: "Contributions", icon: HandCoins },
     { href: "/users", label: "Users", icon: UserCog },
     { href: "/backup", label: "Backup", icon: Download },
     { href: "/settings", label: "Settings", icon: Settings },
@@ -45,17 +46,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const SidebarContent = () => (
     <>
-      {/* Brand */}
-      <div className="px-5 pt-6 pb-5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
-            <Users className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="font-bold text-sm text-white leading-none">MemberPortal</div>
-            <div className="text-[10px] text-blue-300/70 mt-0.5">Al-Hikmah CC</div>
-          </div>
-        </div>
+      {/* Brand / Logo */}
+      <div className="px-4 pt-5 pb-4 flex items-center justify-between">
+        <img
+          src="/logo-transparent.png"
+          alt="Al-Hikmah Member Portal"
+          className="h-14 w-auto object-contain"
+        />
         {/* Close button — mobile only */}
         <button
           className="md:hidden text-slate-400 hover:text-white transition-colors p-1"

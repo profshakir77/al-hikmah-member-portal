@@ -327,6 +327,75 @@ paths:
                 items:
                   $ref: "#/components/schemas/Member"
 
+  /contributions:
+    get:
+      operationId: listContributions
+      tags: [contributions]
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: year
+          in: query
+          schema: { type: integer }
+        - name: month
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of contributions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Contribution" }
+    post:
+      operationId: createContribution
+      tags: [contributions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ContributionInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Contribution" }
+
+  /contributions/{id}:
+    patch:
+      operationId: updateContribution
+      tags: [contributions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ContributionUpdate" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Contribution" }
+    delete:
+      operationId: deleteContribution
+      tags: [contributions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
   /settings:
     get:
       operationId: getSettings
@@ -689,6 +758,49 @@ components:
         whatsappAlertTemplate: { type: string }
         whatsappReceiptTemplate: { type: string }
         currency: { type: string }
+
+    Contribution:
+      type: object
+      required: [id, name, amount, date, type, year, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: ["string", "null"] }
+        amount: { type: number }
+        date: { type: string }
+        type: { type: string, enum: [participant, bank_transfer] }
+        reference: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        year: { type: integer }
+        month: { type: ["integer", "null"] }
+        createdAt: { type: string }
+
+    ContributionInput:
+      type: object
+      required: [name, amount, date, type, year]
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string }
+        amount: { type: number }
+        date: { type: string }
+        type: { type: string, enum: [participant, bank_transfer] }
+        reference: { type: string }
+        notes: { type: string }
+        year: { type: integer }
+        month: { type: integer }
+
+    ContributionUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        phone: { type: string }
+        amount: { type: number }
+        date: { type: string }
+        type: { type: string }
+        reference: { type: string }
+        notes: { type: string }
+        year: { type: integer }
+        month: { type: integer }
 
     MemberPaymentMonth:
       type: object

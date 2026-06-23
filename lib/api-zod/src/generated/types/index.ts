@@ -7,6 +7,11 @@
  */
 
 export * from './backupData';
+export * from './contribution';
+export * from './contributionInput';
+export * from './contributionInputType';
+export * from './contributionType';
+export * from './contributionUpdate';
 export * from './dashboardStats';
 export * from './expense';
 export * from './expenseCategoryTotal';
@@ -22,6 +27,7 @@ export * from './getTaxAnnualReportParams';
 export * from './getUnpaidMembersParams';
 export * from './getYearlyReportParams';
 export * from './healthStatus';
+export * from './listContributionsParams';
 export * from './listExpensesParams';
 export * from './listMembersParams';
 export * from './listMembersStatus';

@@ -328,6 +328,80 @@ export const GetUnpaidMembersResponseItem = zod.object({
 export const GetUnpaidMembersResponse = zod.array(GetUnpaidMembersResponseItem)
 
 
+export const ListContributionsQueryParams = zod.object({
+  "type": zod.coerce.string().optional(),
+  "year": zod.coerce.number().optional(),
+  "month": zod.coerce.number().optional()
+})
+
+export const ListContributionsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "amount": zod.number(),
+  "date": zod.string(),
+  "type": zod.enum(['participant', 'bank_transfer']),
+  "reference": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "year": zod.number(),
+  "month": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+export const ListContributionsResponse = zod.array(ListContributionsResponseItem)
+
+
+
+
+
+export const CreateContributionBody = zod.object({
+  "name": zod.string().min(1),
+  "phone": zod.string().optional(),
+  "amount": zod.number(),
+  "date": zod.string(),
+  "type": zod.enum(['participant', 'bank_transfer']),
+  "reference": zod.string().optional(),
+  "notes": zod.string().optional(),
+  "year": zod.number(),
+  "month": zod.number().optional()
+})
+
+
+export const UpdateContributionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateContributionBody = zod.object({
+  "name": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "amount": zod.number().optional(),
+  "date": zod.string().optional(),
+  "type": zod.string().optional(),
+  "reference": zod.string().optional(),
+  "notes": zod.string().optional(),
+  "year": zod.number().optional(),
+  "month": zod.number().optional()
+})
+
+export const UpdateContributionResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "amount": zod.number(),
+  "date": zod.string(),
+  "type": zod.enum(['participant', 'bank_transfer']),
+  "reference": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "year": zod.number(),
+  "month": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+
+
+export const DeleteContributionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
 export const GetSettingsResponse = zod.object({
   "id": zod.number(),
   "organizationName": zod.string(),

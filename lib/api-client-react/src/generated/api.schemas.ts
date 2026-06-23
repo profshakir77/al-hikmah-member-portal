@@ -167,6 +167,65 @@ export interface SettingsUpdate {
   currency?: string;
 }
 
+export type ContributionType = typeof ContributionType[keyof typeof ContributionType];
+
+
+export const ContributionType = {
+  participant: 'participant',
+  bank_transfer: 'bank_transfer',
+} as const;
+
+export interface Contribution {
+  id: number;
+  name: string;
+  /** @nullable */
+  phone?: string | null;
+  amount: number;
+  date: string;
+  type: ContributionType;
+  /** @nullable */
+  reference?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  year: number;
+  /** @nullable */
+  month?: number | null;
+  createdAt: string;
+}
+
+export type ContributionInputType = typeof ContributionInputType[keyof typeof ContributionInputType];
+
+
+export const ContributionInputType = {
+  participant: 'participant',
+  bank_transfer: 'bank_transfer',
+} as const;
+
+export interface ContributionInput {
+  /** @minLength 1 */
+  name: string;
+  phone?: string;
+  amount: number;
+  date: string;
+  type: ContributionInputType;
+  reference?: string;
+  notes?: string;
+  year: number;
+  month?: number;
+}
+
+export interface ContributionUpdate {
+  name?: string;
+  phone?: string;
+  amount?: number;
+  date?: string;
+  type?: string;
+  reference?: string;
+  notes?: string;
+  year?: number;
+  month?: number;
+}
+
 export interface MemberPaymentMonth {
   month: number;
   paid: boolean;
@@ -382,6 +441,12 @@ year: number;
 export type GetUnpaidMembersParams = {
 month: number;
 year: number;
+};
+
+export type ListContributionsParams = {
+type?: string;
+year?: number;
+month?: number;
 };
 
 export type ListExpensesParams = {

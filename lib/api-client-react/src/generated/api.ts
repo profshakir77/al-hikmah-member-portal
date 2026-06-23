@@ -21,6 +21,9 @@ import type {
 
 import type {
   BackupData,
+  Contribution,
+  ContributionInput,
+  ContributionUpdate,
   DashboardStats,
   Expense,
   ExpenseInput,
@@ -35,6 +38,7 @@ import type {
   GetUnpaidMembersParams,
   GetYearlyReportParams,
   HealthStatus,
+  ListContributionsParams,
   ListExpensesParams,
   ListMembersParams,
   ListPaymentsParams,
@@ -1311,6 +1315,279 @@ export function useGetUnpaidMembers<TData = Awaited<ReturnType<typeof getUnpaidM
 
 
 
+
+export const getListContributionsUrl = (params?: ListContributionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/contributions?${stringifiedParams}` : `/api/contributions`
+}
+
+export const listContributions = async (params?: ListContributionsParams, options?: RequestInit): Promise<Contribution[]> => {
+
+  return customFetch<Contribution[]>(getListContributionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListContributionsQueryKey = (params?: ListContributionsParams,) => {
+    return [
+    `/api/contributions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListContributionsQueryOptions = <TData = Awaited<ReturnType<typeof listContributions>>, TError = ErrorType<unknown>>(params?: ListContributionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listContributions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListContributionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listContributions>>> = ({ signal }) => listContributions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listContributions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListContributionsQueryResult = NonNullable<Awaited<ReturnType<typeof listContributions>>>
+export type ListContributionsQueryError = ErrorType<unknown>
+
+
+
+export function useListContributions<TData = Awaited<ReturnType<typeof listContributions>>, TError = ErrorType<unknown>>(
+ params?: ListContributionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listContributions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListContributionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateContributionUrl = () => {
+
+
+
+
+  return `/api/contributions`
+}
+
+export const createContribution = async (contributionInput: ContributionInput, options?: RequestInit): Promise<Contribution> => {
+
+  return customFetch<Contribution>(getCreateContributionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      contributionInput,)
+  }
+);}
+
+
+
+
+export const getCreateContributionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createContribution>>, TError,{data: BodyType<ContributionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createContribution>>, TError,{data: BodyType<ContributionInput>}, TContext> => {
+
+const mutationKey = ['createContribution'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createContribution>>, {data: BodyType<ContributionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createContribution(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateContributionMutationResult = NonNullable<Awaited<ReturnType<typeof createContribution>>>
+    export type CreateContributionMutationBody = BodyType<ContributionInput>
+    export type CreateContributionMutationError = ErrorType<unknown>
+
+    export const useCreateContribution = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createContribution>>, TError,{data: BodyType<ContributionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createContribution>>,
+        TError,
+        {data: BodyType<ContributionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateContributionMutationOptions(options));
+    }
+
+export const getUpdateContributionUrl = (id: number,) => {
+
+
+
+
+  return `/api/contributions/${id}`
+}
+
+export const updateContribution = async (id: number,
+    contributionUpdate: ContributionUpdate, options?: RequestInit): Promise<Contribution> => {
+
+  return customFetch<Contribution>(getUpdateContributionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      contributionUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateContributionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateContribution>>, TError,{id: number;data: BodyType<ContributionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateContribution>>, TError,{id: number;data: BodyType<ContributionUpdate>}, TContext> => {
+
+const mutationKey = ['updateContribution'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateContribution>>, {id: number;data: BodyType<ContributionUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateContribution(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateContributionMutationResult = NonNullable<Awaited<ReturnType<typeof updateContribution>>>
+    export type UpdateContributionMutationBody = BodyType<ContributionUpdate>
+    export type UpdateContributionMutationError = ErrorType<unknown>
+
+    export const useUpdateContribution = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateContribution>>, TError,{id: number;data: BodyType<ContributionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateContribution>>,
+        TError,
+        {id: number;data: BodyType<ContributionUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateContributionMutationOptions(options));
+    }
+
+export const getDeleteContributionUrl = (id: number,) => {
+
+
+
+
+  return `/api/contributions/${id}`
+}
+
+export const deleteContribution = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteContributionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteContributionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteContribution>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteContribution>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteContribution'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteContribution>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteContribution(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteContributionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteContribution>>>
+
+    export type DeleteContributionMutationError = ErrorType<unknown>
+
+    export const useDeleteContribution = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteContribution>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteContribution>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteContributionMutationOptions(options));
+    }
 
 export const getGetSettingsUrl = () => {
 
