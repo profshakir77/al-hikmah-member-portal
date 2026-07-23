@@ -54,5 +54,3 @@ artifacts/electron-app/node_modules/
 artifacts/electron-app/dist/
 artifacts/electron-app/resources/renderer/
 /public
-api/index.js
-api/index.js
