@@ -1,0 +1,4 @@
+artifacts/electron-app/
+attached_assets/
+.agents/
+*.log
