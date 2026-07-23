@@ -2,7 +2,7 @@
   "version": 2,
   "framework": null,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/member-portal build && pnpm --filter @workspace/db run push-force && node scripts/build-api.mjs",
+  "buildCommand": "pnpm --filter @workspace/member-portal build && node scripts/build-api.mjs",
   "outputDirectory": "artifacts/member-portal/dist/public",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
