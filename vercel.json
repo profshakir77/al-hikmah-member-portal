@@ -3,7 +3,7 @@
   "framework": null,
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @workspace/member-portal build && node scripts/build-api.mjs",
-  "outputDirectory": "public",
+  "outputDirectory": "artifacts/member-portal/dist/public",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
