@@ -2,7 +2,7 @@
   "version": 2,
   "framework": null,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/member-portal build && cp -r artifacts/member-portal/dist/public ./public",
+  "buildCommand": "pnpm --filter @workspace/member-portal build",
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
