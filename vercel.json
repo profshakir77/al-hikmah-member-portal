@@ -2,7 +2,7 @@
   "version": 2,
   "framework": null,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/member-portal build && pnpm exec esbuild api/_entry.ts --bundle --platform=node --target=node18 --outfile=api/index.js --format=cjs --external:pg-native --external:@neondatabase/serverless",
+  "buildCommand": "pnpm --filter @workspace/member-portal build && node scripts/build-api.mjs",
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
