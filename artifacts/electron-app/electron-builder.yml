@@ -1,0 +1,46 @@
+appId: com.alhikmah.memberportal
+productName: Al-Hikmah Member Portal
+copyright: Developed by Shakir Hussain — +92-331-6303327
+
+directories:
+  output: release
+  buildResources: build
+
+# Only include the bundled main process and the one external dependency (@electric-sql/pglite).
+# Everything else (express, drizzle, jsonwebtoken, etc.) is bundled into dist/main.js by esbuild.
+files:
+  - dist/main.js
+  - package.json
+  - node_modules/@electric-sql/**
+
+extraResources:
+  - from: resources/renderer
+    to: renderer
+
+# Disable asar packing entirely — avoids the asar-integrity signing step
+# that requires wine when cross-compiling from Linux to Windows.
+asar: false
+
+win:
+  target:
+    - target: nsis
+      arch: x64
+    - target: zip
+      arch: x64
+  icon: build/icon.png
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Al-Hikmah Member Portal
+  displayLanguageSelector: false
+  installerLanguages:
+    - en_US
+
+# Disable native rebuild since we have no native Node addons (PGlite is WASM)
+npmRebuild: false
+
+publish: null

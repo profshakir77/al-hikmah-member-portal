@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "M9mQgOq9jD4R703pJ0v1j"
+uri = "file://artifacts/electron-app/release/Al-Hikmah-Member-Portal-win-portable.zip"
+type = "unspecified"
+title = "Al-Hikmah Member Portal — Windows Portable App (121 MB)"
