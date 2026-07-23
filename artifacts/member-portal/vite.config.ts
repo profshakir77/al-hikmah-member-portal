@@ -40,10 +40,7 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    // Output to /public at the repo root so Vercel finds it without extra copy steps.
-    // For local Replit dev, the dev server streams from memory so this only affects
-    // the production build artefact location.
-    outDir: path.resolve(import.meta.dirname, "../../public"),
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
