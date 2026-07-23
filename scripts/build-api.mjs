@@ -66,6 +66,9 @@ async function initSchema() {
       password_hash TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS email TEXT;
+    ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS reset_token TEXT;
+    ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP;
     CREATE TABLE IF NOT EXISTS contributions (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,

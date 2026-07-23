@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, EyeOff, Lock, User, Phone, Mail, HelpCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, User, Phone, Mail, HelpCircle, Copy, Check, ArrowLeft } from "lucide-react";
 
 export default function Login() {
   const { login, isLoading } = useAuth();
@@ -12,7 +12,16 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Forgot password state
   const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotStep, setForgotStep] = useState<1 | 2>(1);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLink, setForgotLink] = useState("");
+  const [forgotName, setForgotName] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -28,6 +37,51 @@ export default function Login() {
     }
   };
 
+  const handleForgotSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+    if (!forgotEmail.trim()) { setForgotError("Please enter your email address."); return; }
+    setForgotLoading(true);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Request failed");
+      setForgotLink(data.resetLink);
+      setForgotName(data.name ?? "");
+      setForgotStep(2);
+    } catch (err) {
+      setForgotError(err instanceof Error ? err.message : "Request failed. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(forgotLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback: select the text
+    }
+  };
+
+  const closeForgot = () => {
+    setForgotOpen(false);
+    setTimeout(() => {
+      setForgotStep(1);
+      setForgotEmail("");
+      setForgotLink("");
+      setForgotName("");
+      setForgotError(null);
+      setCopied(false);
+    }, 300);
+  };
+
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-4"
@@ -35,7 +89,6 @@ export default function Login() {
         background: "linear-gradient(160deg, hsl(222 47% 10%) 0%, hsl(225 50% 6%) 60%, hsl(160 40% 8%) 100%)",
       }}
     >
-      {/* Card */}
       <div className="w-full max-w-sm">
         {/* Logo area */}
         <div className="flex flex-col items-center mb-8">
@@ -140,42 +193,80 @@ export default function Login() {
       </div>
 
       {/* Forgot Password Dialog */}
-      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+      <Dialog open={forgotOpen} onOpenChange={closeForgot}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {forgotStep === 2 && (
+                <button onClick={() => setForgotStep(1)} className="text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+              )}
+              {forgotStep === 1 ? "Forgot Password" : "Reset Link Ready"}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground">
-              Password resets are handled by the system administrator. Please contact:
-            </p>
-            <div className="rounded-lg bg-muted p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <User className="w-4 h-4 text-green-700" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Shakir Hussain</p>
-                  <p className="text-xs text-muted-foreground">System Developer</p>
+
+          {forgotStep === 1 ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">
+                Enter the email address linked to your account. A reset link will be generated for you.
+              </p>
+              <div className="space-y-1.5">
+                <Label>Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="pl-9"
+                    autoFocus
+                  />
                 </div>
               </div>
-              <a
-                href="tel:+923316303327"
-                className="flex items-center gap-2 text-sm text-green-700 hover:underline"
-              >
-                <Phone className="w-4 h-4" /> +92-331-6303327
-              </a>
-              <a
-                href="mailto:prof.shakir77@gmail.com"
-                className="flex items-center gap-2 text-sm text-green-700 hover:underline"
-              >
-                <Mail className="w-4 h-4" /> prof.shakir77@gmail.com
-              </a>
+              {forgotError && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-red-600 text-sm">
+                  {forgotError}
+                </div>
+              )}
+              <Button type="submit" disabled={forgotLoading} className="w-full">
+                {forgotLoading ? "Checking..." : "Get Reset Link"}
+              </Button>
+            </form>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                ✓ Reset link generated{forgotName ? ` for ${forgotName}` : ""}. Copy it and open it in your browser.
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Reset Link (valid for 1 hour)</Label>
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={forgotLink}
+                    className="flex-1 text-xs bg-muted border rounded-md px-3 py-2 font-mono overflow-hidden text-ellipsis"
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                  <Button size="sm" variant="outline" onClick={handleCopy} className="shrink-0 gap-1.5">
+                    {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? "Copied!" : "Copy"}
+                  </Button>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Open the link in a browser to set your new password. The link expires in 1 hour.
+              </p>
+
+              <Button asChild className="w-full" variant="outline">
+                <a href={forgotLink} target="_blank" rel="noopener noreferrer">
+                  Open Reset Page →
+                </a>
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              The admin can reset your password from the Users management section.
-            </p>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

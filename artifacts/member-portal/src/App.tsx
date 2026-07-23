@@ -5,7 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { useLocation } from "wouter";
 import Login from "@/pages/login";
+import ResetPassword from "@/pages/reset-password";
 import Layout from "./components/layout";
 import Dashboard from "./pages/dashboard";
 import Members from "./pages/members";
@@ -25,6 +27,11 @@ const queryClient = new QueryClient();
 
 function ProtectedRouter() {
   const { user } = useAuth();
+  const [location] = useLocation();
+
+  if (location.startsWith("/reset-password")) {
+    return <ResetPassword />;
+  }
 
   if (!user) {
     return <Login />;

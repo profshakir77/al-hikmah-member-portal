@@ -1229,7 +1229,7 @@ var require_utils_webcrypto = __commonJS({
     var nodeCrypto = require("crypto");
     module2.exports = {
       postgresMd5PasswordHash,
-      randomBytes,
+      randomBytes: randomBytes2,
       deriveKey,
       sha256,
       hashByName,
@@ -1239,7 +1239,7 @@ var require_utils_webcrypto = __commonJS({
     var webCrypto = nodeCrypto.webcrypto || globalThis.crypto;
     var subtleCrypto = webCrypto.subtle;
     var textEncoder = new TextEncoder();
-    function randomBytes(length) {
+    function randomBytes2(length) {
       return webCrypto.getRandomValues(Buffer.alloc(length));
     }
     async function md5(string4) {
@@ -55897,6 +55897,9 @@ var usersTable = pgTable("portal_users", {
   name: text("name").notNull(),
   role: text("role").notNull().default("viewer"),
   passwordHash: text("password_hash").notNull(),
+  email: text("email"),
+  resetToken: text("reset_token"),
+  resetTokenExpires: timestamp("reset_token_expires"),
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
 var contributionsTable = pgTable("contributions", {
@@ -60241,6 +60244,7 @@ var ListUsersResponseItem = objectType({
   "username": stringType(),
   "name": stringType(),
   "role": enumType(["admin", "viewer"]),
+  "email": stringType().nullish(),
   "createdAt": stringType()
 });
 var ListUsersResponse = arrayType(ListUsersResponseItem);
@@ -60249,7 +60253,8 @@ var CreateUserBody = objectType({
   "username": stringType().min(1),
   "name": stringType().min(1),
   "role": enumType(["admin", "viewer"]),
-  "password": stringType().min(createUserBodyPasswordMin)
+  "password": stringType().min(createUserBodyPasswordMin),
+  "email": stringType().optional()
 });
 var UpdateUserParams = objectType({
   "id": coerce.number()
@@ -60257,13 +60262,15 @@ var UpdateUserParams = objectType({
 var UpdateUserBody = objectType({
   "name": stringType().optional(),
   "role": enumType(["admin", "viewer"]).optional(),
-  "password": stringType().optional()
+  "password": stringType().optional(),
+  "email": stringType().nullish()
 });
 var UpdateUserResponse = objectType({
   "id": numberType(),
   "username": stringType(),
   "name": stringType(),
   "role": enumType(["admin", "viewer"]),
+  "email": stringType().nullish(),
   "createdAt": stringType()
 });
 var DeleteUserParams = objectType({
@@ -60405,6 +60412,41 @@ router2.post("/change-password", requireAuth, async (req, res) => {
   }
   await db.update(usersTable).set({ passwordHash: hashPassword(String(newPassword)) }).where(eq(usersTable.id, userId));
   return res.json({ message: "Password changed successfully" });
+});
+router2.post("/forgot-password", async (req, res) => {
+  const { email: email3 } = req.body ?? {};
+  if (!email3) {
+    return res.status(400).json({ error: "Email address is required" });
+  }
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, String(email3).toLowerCase().trim()));
+  if (!user) {
+    return res.status(404).json({ error: "No account found with that email address" });
+  }
+  const token = (0, import_crypto.randomBytes)(32).toString("hex");
+  const expires = new Date(Date.now() + 60 * 60 * 1e3);
+  await db.update(usersTable).set({ resetToken: token, resetTokenExpires: expires }).where(eq(usersTable.id, user.id));
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  const resetLink = `${protocol}://${host}/reset-password?token=${token}`;
+  return res.json({ resetLink, name: user.name });
+});
+router2.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body ?? {};
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: "Token and new password are required" });
+  }
+  if (String(newPassword).length < 4) {
+    return res.status(400).json({ error: "Password must be at least 4 characters" });
+  }
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.resetToken, String(token)));
+  if (!user) {
+    return res.status(400).json({ error: "Invalid or expired reset link. Please request a new one." });
+  }
+  if (!user.resetTokenExpires || user.resetTokenExpires < /* @__PURE__ */ new Date()) {
+    return res.status(400).json({ error: "This reset link has expired. Please request a new one." });
+  }
+  await db.update(usersTable).set({ passwordHash: hashPassword(String(newPassword)), resetToken: null, resetTokenExpires: null }).where(eq(usersTable.id, user.id));
+  return res.json({ message: "Password reset successfully" });
 });
 
 // artifacts/api-server/src/routes/members.ts
@@ -61014,6 +61056,7 @@ router8.get("/", async (_req, res) => {
     username: usersTable.username,
     name: usersTable.name,
     role: usersTable.role,
+    email: usersTable.email,
     createdAt: usersTable.createdAt
   }).from(usersTable);
   return res.json(users.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })));
@@ -61023,18 +61066,19 @@ router8.post("/", async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
   }
-  const { username, name, role, password } = parsed.data;
+  const { username, name, role, password, email: email3 } = parsed.data;
   const existing = await db.select().from(usersTable).where(eq(usersTable.username, username));
   if (existing.length > 0) {
     return res.status(409).json({ error: "Username already taken" });
   }
-  const [user] = await db.insert(usersTable).values({ username, name, role, passwordHash: hashPassword2(password) }).returning();
+  const [user] = await db.insert(usersTable).values({ username, name, role, passwordHash: hashPassword2(password), email: email3?.toLowerCase().trim() || null }).returning();
   if (!user) return res.status(500).json({ error: "Failed to create user" });
   return res.status(201).json({
     id: user.id,
     username: user.username,
     name: user.name,
     role: user.role,
+    email: user.email,
     createdAt: user.createdAt.toISOString()
   });
 });
@@ -61048,6 +61092,7 @@ router8.patch("/:id", async (req, res) => {
   if (d.name !== void 0) updates.name = d.name;
   if (d.role !== void 0) updates.role = d.role;
   if (d.password !== void 0) updates.passwordHash = hashPassword2(d.password);
+  if (d.email !== void 0) updates.email = d.email ? d.email.toLowerCase().trim() : null;
   const [user] = await db.update(usersTable).set(updates).where(eq(usersTable.id, paramParsed.data.id)).returning();
   if (!user) return res.status(404).json({ error: "User not found" });
   return res.json({
@@ -61055,6 +61100,7 @@ router8.patch("/:id", async (req, res) => {
     username: user.username,
     name: user.name,
     role: user.role,
+    email: user.email,
     createdAt: user.createdAt.toISOString()
   });
 });
@@ -61331,6 +61377,9 @@ async function initSchema() {
       password_hash TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS email TEXT;
+    ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS reset_token TEXT;
+    ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP;
     CREATE TABLE IF NOT EXISTS contributions (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,

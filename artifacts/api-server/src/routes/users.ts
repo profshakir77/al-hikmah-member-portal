@@ -22,6 +22,7 @@ router.get("/", async (_req, res) => {
     username: usersTable.username,
     name: usersTable.name,
     role: usersTable.role,
+    email: usersTable.email,
     createdAt: usersTable.createdAt,
   }).from(usersTable);
 
@@ -34,7 +35,7 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
   }
 
-  const { username, name, role, password } = parsed.data;
+  const { username, name, role, password, email } = parsed.data as typeof parsed.data & { email?: string };
 
   const existing = await db.select().from(usersTable).where(eq(usersTable.username, username));
   if (existing.length > 0) {
@@ -43,7 +44,7 @@ router.post("/", async (req, res) => {
 
   const [user] = await db
     .insert(usersTable)
-    .values({ username, name, role, passwordHash: hashPassword(password) })
+    .values({ username, name, role, passwordHash: hashPassword(password), email: email?.toLowerCase().trim() || null })
     .returning();
 
   if (!user) return res.status(500).json({ error: "Failed to create user" });
@@ -52,6 +53,7 @@ router.post("/", async (req, res) => {
     username: user.username,
     name: user.name,
     role: user.role,
+    email: user.email,
     createdAt: user.createdAt.toISOString(),
   });
 });
@@ -64,10 +66,11 @@ router.patch("/:id", async (req, res) => {
   if (!bodyParsed.success) return res.status(400).json({ error: "Invalid input" });
 
   const updates: Record<string, unknown> = {};
-  const d = bodyParsed.data;
+  const d = bodyParsed.data as typeof bodyParsed.data & { email?: string | null };
   if (d.name !== undefined) updates.name = d.name;
   if (d.role !== undefined) updates.role = d.role;
   if (d.password !== undefined) updates.passwordHash = hashPassword(d.password);
+  if (d.email !== undefined) updates.email = d.email ? d.email.toLowerCase().trim() : null;
 
   const [user] = await db
     .update(usersTable)
@@ -81,6 +84,7 @@ router.patch("/:id", async (req, res) => {
     username: user.username,
     name: user.name,
     role: user.role,
+    email: user.email,
     createdAt: user.createdAt.toISOString(),
   });
 });

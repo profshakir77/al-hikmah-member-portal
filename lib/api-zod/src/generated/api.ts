@@ -514,6 +514,7 @@ export const ListUsersResponseItem = zod.object({
   "username": zod.string(),
   "name": zod.string(),
   "role": zod.enum(['admin', 'viewer']),
+  "email": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const ListUsersResponse = zod.array(ListUsersResponseItem)
@@ -529,7 +530,8 @@ export const CreateUserBody = zod.object({
   "username": zod.string().min(1),
   "name": zod.string().min(1),
   "role": zod.enum(['admin', 'viewer']),
-  "password": zod.string().min(createUserBodyPasswordMin)
+  "password": zod.string().min(createUserBodyPasswordMin),
+  "email": zod.string().optional()
 })
 
 
@@ -540,7 +542,8 @@ export const UpdateUserParams = zod.object({
 export const UpdateUserBody = zod.object({
   "name": zod.string().optional(),
   "role": zod.enum(['admin', 'viewer']).optional(),
-  "password": zod.string().optional()
+  "password": zod.string().optional(),
+  "email": zod.string().nullish()
 })
 
 export const UpdateUserResponse = zod.object({
@@ -548,6 +551,7 @@ export const UpdateUserResponse = zod.object({
   "username": zod.string(),
   "name": zod.string(),
   "role": zod.enum(['admin', 'viewer']),
+  "email": zod.string().nullish(),
   "createdAt": zod.string()
 })
 

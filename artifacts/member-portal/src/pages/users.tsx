@@ -14,8 +14,8 @@ import { Plus, Pencil, Trash2, Shield, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoBackup } from "@/hooks/use-auto-backup";
 
-type UserForm = { username: string; name: string; role: string; password: string };
-const emptyForm = (): UserForm => ({ username: "", name: "", role: "viewer", password: "" });
+type UserForm = { username: string; name: string; role: string; password: string; email: string };
+const emptyForm = (): UserForm => ({ username: "", name: "", role: "viewer", password: "", email: "" });
 
 export default function Users() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,19 +55,19 @@ export default function Users() {
   const openAdd = () => { setEditId(null); setForm(emptyForm()); setDialogOpen(true); };
   const openEdit = (u: NonNullable<typeof users>[number]) => {
     setEditId(u.id);
-    setForm({ username: u.username, name: u.name, role: u.role, password: "" });
+    setForm({ username: u.username, name: u.name, role: u.role, password: "", email: u.email ?? "" });
     setDialogOpen(true);
   };
 
   const handleSubmit = () => {
     if (!form.name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
     if (editId != null) {
-      const data: { name?: string; role?: "admin" | "viewer"; password?: string } = { name: form.name, role: form.role as "admin" | "viewer" };
+      const data: { name?: string; role?: "admin" | "viewer"; password?: string; email?: string | null } = { name: form.name, role: form.role as "admin" | "viewer", email: form.email.trim() || null };
       if (form.password.trim()) data.password = form.password;
       updateUser.mutate({ id: editId, data });
     } else {
       if (!form.username.trim() || !form.password.trim()) { toast({ title: "Username and password required", variant: "destructive" }); return; }
-      createUser.mutate({ data: { username: form.username, name: form.name, role: form.role as "admin" | "viewer", password: form.password } });
+      createUser.mutate({ data: { username: form.username, name: form.name, role: form.role as "admin" | "viewer", password: form.password, email: form.email.trim() || undefined } });
     }
   };
 
@@ -174,6 +174,10 @@ export default function Users() {
                   <SelectItem value="viewer">Viewer - read only</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email Address <span className="text-muted-foreground text-xs">(used for password reset)</span></Label>
+              <Input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="user@example.com" />
             </div>
             <div className="space-y-1.5">
               <Label>{editId != null ? "New Password (leave blank to keep)" : "Password *"}</Label>
