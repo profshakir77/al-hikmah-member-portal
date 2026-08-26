@@ -1,13 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
-
+import { setAuthTokenGetter, setUnauthorizedHandler } from "@workspace/api-client-react";
 interface AuthUser {
   id: number;
   username: string;
   name: string;
   role: string;
 }
-
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
@@ -15,12 +13,9 @@ interface AuthContextValue {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
-
 const AuthContext = createContext<AuthContextValue | null>(null);
-
 const TOKEN_KEY = "al-hikmah-token";
 const USER_KEY = "al-hikmah-user";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -29,9 +24,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setToken(null);
+    setUser(null);
+  }, []);
+
   useEffect(() => {
     setAuthTokenGetter(() => localStorage.getItem(TOKEN_KEY));
   }, []);
+
+  // If any API call comes back 401 (expired/invalid token), clear stale
+  // auth state so the user is bounced back to the login screen instead of
+  // every screen quietly failing with a generic "error loading" message.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
 
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
@@ -55,20 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setToken(null);
-    setUser(null);
-  }, []);
-
   return (
     <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
